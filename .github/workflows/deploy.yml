@@ -17,9 +17,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      # Temporary: ship without a service worker to avoid the ai.studio error
-      VITE_DISABLE_SW: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,8 +30,26 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Create environment file
+        run: |
+          echo "VITE_GEMINI_API_KEY=${{ secrets.VITE_GEMINI_API_KEY }}" > .env.local
+          echo "GEMINI_API_KEY=${{ secrets.VITE_GEMINI_API_KEY }}" >> .env.local
+          echo "NODE_ENV=production" >> .env.local
+          echo "Environment file created:"
+          cat .env.local
+
       - name: Build
         run: npm run build
+        env:
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+
+      - name: List build output
+        run: |
+          echo "Build output contents:"
+          ls -la dist/
+          echo "Index.html content preview:"
+          head -20 dist/index.html
 
       - name: SPA fallback (404.html)
         run: cp dist/index.html dist/404.html
