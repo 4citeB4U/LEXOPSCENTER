@@ -4,24 +4,37 @@
 
 Before your LEXOPSCENTER application can run automatically on GitHub, you need to complete these setup steps:
 
-### 1. **Enable GitHub Pages**
+### 1. **Set Up Local Environment**
+```bash
+# Run the setup script (Windows)
+setup-env.bat
+
+# Or manually create .env.local file:
+# GEMINI_API_KEY=your_actual_gemini_api_key_here
+# VITE_GEMINI_API_KEY=your_actual_gemini_api_key_here
+# NODE_ENV=development
+```
+
+### 2. **Enable GitHub Pages**
 - Go to your repository: `https://github.com/4citeB4U/LEXOPSCENTER`
 - Click **Settings** → **Pages**
 - Set **Source** to "GitHub Actions"
 - Click **Save**
 
-### 2. **Set Up GitHub Secrets**
+### 3. **Set Up GitHub Secrets**
 - Go to **Settings** → **Secrets and variables** → **Actions**
 - Click **New repository secret**
-- Add these secrets:
+- Add this secret:
   - **Name**: `GEMINI_API_KEY`
-  - **Value**: Your actual Google Gemini API key
+  - **Value**: Your actual Google Gemini API key (same as in .env.local)
   - Click **Add secret**
 
-### 3. **Install Dependencies**
+### 4. **Test Locally First**
 ```bash
 npm install
+npm run dev
 ```
+Visit `http://localhost:5173` to ensure everything works locally.
 
 ## 🔄 Automatic Deployment
 
@@ -51,9 +64,10 @@ npm run deploy
 ## ⚠️ Important Notes
 
 - **Environment Variables**: The app needs `GEMINI_API_KEY` to function properly
+- **Local Testing**: Always test locally with `npm run dev` before pushing
+- **API Key Security**: Never commit your `.env.local` file to Git
 - **Build Process**: Uses Vite for fast builds and optimal production output
 - **PWA Ready**: Includes service worker and manifest for app-like experience
-- **Responsive**: Works on all devices and screen sizes
 
 ## 🔍 Troubleshooting
 
@@ -61,11 +75,12 @@ npm run deploy
 - Check that `GEMINI_API_KEY` is set in GitHub Secrets
 - Ensure all dependencies are installed (`npm install`)
 - Check GitHub Actions logs for specific error messages
+- Verify your API key is valid and has proper permissions
 
 ### App Doesn't Load
-- Verify GitHub Pages is enabled
+- Verify GitHub Pages is enabled and set to "GitHub Actions"
 - Check the deployed URL is correct
-- Ensure the build completed successfully
+- Ensure the build completed successfully in GitHub Actions
 
 ### Missing Features
 - Verify your API key has the correct permissions
