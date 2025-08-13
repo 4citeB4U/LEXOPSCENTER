@@ -103,17 +103,17 @@ const ResearchAgent: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-900">
+    <div className="h-full flex flex-col bg-slate-900 overflow-hidden">
       {/* Header - Compact */}
-      <div className="p-4 border-b border-slate-700 bg-slate-800">
-        <h1 className="text-2xl font-bold text-text-light mb-2">Research Agent</h1>
-        <p className="text-sm text-text-dark">
+      <div className="flex-shrink-0 p-4 border-b border-slate-700 bg-slate-800">
+        <h1 className="text-xl font-bold text-text-light mb-2">Research Agent</h1>
+        <p className="text-xs text-text-dark">
           Get comprehensive research results with AI analysis and visual aids
         </p>
       </div>
 
       {/* Search Input - Compact */}
-      <div className="p-4 border-b border-slate-700">
+      <div className="flex-shrink-0 p-3 border-b border-slate-700 bg-slate-800">
         <div className="flex">
           <div className="relative flex-1">
             <SearchIcon />
@@ -123,16 +123,16 @@ const ResearchAgent: React.FC = () => {
               onChange={(e) => setQuery(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Enter your research topic..."
-              className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-600 rounded-l-lg text-text-light placeholder-text-dark focus:outline-none focus:ring-2 focus:ring-accent-fuchsia focus:border-transparent"
+              className="w-full pl-12 pr-4 py-2 bg-slate-800 border border-slate-600 rounded-l-lg text-text-light placeholder-text-dark focus:outline-none focus:ring-2 focus:ring-accent-fuchsia focus:border-transparent text-sm"
             />
           </div>
           <button
             onClick={handleSearch}
             disabled={isLoading || !query.trim()}
-            className="px-6 py-3 bg-accent-fuchsia hover:bg-accent-fuchsia/80 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-medium rounded-r-lg transition-colors duration-200 flex items-center"
+            className="px-4 py-2 bg-accent-fuchsia hover:bg-accent-fuchsia/80 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-medium rounded-r-lg transition-colors duration-200 flex items-center text-sm"
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : (
               <>
                 <SearchIcon />
@@ -145,30 +145,30 @@ const ResearchAgent: React.FC = () => {
 
       {/* Action Feedback */}
       {actionFeedback && (
-        <div className="mx-4 mt-4 p-3 bg-green-900/20 border border-green-700 rounded-lg">
-          <p className="text-green-400 text-sm">{actionFeedback}</p>
+        <div className="flex-shrink-0 mx-4 mt-2 p-2 bg-green-900/20 border border-green-700 rounded-lg">
+          <p className="text-green-400 text-xs">{actionFeedback}</p>
         </div>
       )}
 
       {/* Error Display */}
       {error && (
-        <div className="mx-4 mt-4 p-3 bg-red-900/20 border border-red-700 rounded-lg">
-          <p className="text-red-400 text-sm">{error}</p>
+        <div className="flex-shrink-0 mx-4 mt-2 p-2 bg-red-900/20 border border-red-700 rounded-lg">
+          <p className="text-red-400 text-xs">{error}</p>
         </div>
       )}
 
       {/* Results - Compact Layout */}
       {results && (
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-3 space-y-3">
           {/* Research Analysis - Compact */}
-          <div className="bg-slate-800 rounded-lg p-4">
-            <h2 className="text-lg font-semibold text-text-light mb-3 flex items-center">
+          <div className="bg-slate-800 rounded-lg p-3">
+            <h2 className="text-base font-semibold text-text-light mb-2 flex items-center">
               <FileIcon />
               Research Analysis: {results.query}
             </h2>
             <div className="prose prose-invert max-w-none">
               <div 
-                className="text-text-light leading-relaxed text-sm max-h-32 overflow-y-auto"
+                className="text-text-light leading-relaxed text-xs max-h-24 overflow-y-auto"
                 dangerouslySetInnerHTML={{ 
                   __html: results.analysis.replace(/\n/g, '<br>') 
                 }} 
@@ -196,20 +196,20 @@ const ResearchAgent: React.FC = () => {
 
           {/* Sources - Compact */}
           {results.sources.length > 0 && (
-            <div className="bg-slate-800 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-text-light mb-3 flex items-center">
+            <div className="bg-slate-800 rounded-lg p-3">
+              <h3 className="text-sm font-semibold text-text-light mb-2 flex items-center">
                 <LinkIcon />
                 Sources & References
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {results.sources.slice(0, 3).map((source, index) => (
                   <div key={index} className="flex items-center space-x-3">
-                    <span className="text-accent-fuchsia text-sm">•</span>
+                    <span className="text-accent-fuchsia text-xs">•</span>
                     <a
                       href={source.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-400 hover:text-blue-300 transition-colors duration-200 text-sm truncate"
+                      className="text-blue-400 hover:text-blue-300 transition-colors duration-200 text-xs truncate"
                     >
                       {source.title}
                     </a>
@@ -232,11 +232,11 @@ const ResearchAgent: React.FC = () => {
       )}
 
       {/* Quick Actions Footer */}
-      <div className="p-4 border-t border-slate-700 bg-slate-800">
+      <div className="flex-shrink-0 p-3 border-t border-slate-700 bg-slate-800">
         <div className="text-center">
           <button
             onClick={() => setQuickActionModal('intel')}
-            className="inline-flex items-center px-4 py-2 bg-slate-700 hover:bg-slate-600 text-text-light rounded-lg transition-colors duration-200"
+            className="inline-flex items-center px-3 py-2 bg-slate-700 hover:bg-slate-600 text-text-light rounded-lg transition-colors duration-200 text-sm"
           >
             <SearchIcon />
             <span className="ml-2">Quick Intel</span>
