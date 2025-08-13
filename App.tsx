@@ -11,6 +11,7 @@ import CUE from './services/cueRuntime';
 import QuickActionModals from './components/modals/QuickActionModals';
 import MobileHeader from './components/layout/MobileHeader';
 import BackgroundAmbiance from './components/ambiance/BackgroundAmbiance';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 
 
 const BackupReminder: React.FC<{ onDismiss: () => void; onBackup: () => void }> = ({ onDismiss, onBackup }) => (
@@ -160,6 +161,8 @@ function App() {
       <BottomBar />
       <QuickActionModals />
       {isBackdropVisible && <div className="backdrop" onClick={closeSidebars}></div>}
+
+      <PWAInstallPrompt />
 
       <div className="fixed bottom-2 right-4 text-xs text-slate-700 pointer-events-none">
         This is a leeway Industries product. By rapidwebdevelop.com.

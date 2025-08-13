@@ -2,202 +2,249 @@
 
 
 
-import React, { useState, useEffect } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
+import React, { useState } from 'react';
+import { useAppContext } from '../../contexts/AppContext';
 import { getIntel } from '../../services/geminiService';
-import { db } from '../../services/db';
-import type { IntelResult, Research, VoiceCommand, CareerBlueprint } from '../../types';
-import CUE from '../../services/cueRuntime';
+import { researchStorageService } from '../../services/researchStorageService';
+import { IntelResult, ImageSearchResult } from '../../types';
+import ImageResults from './ImageResults';
+import ResearchActions from './ResearchActions';
 
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>;
-const LinkIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>;
-const FileIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>;
+
+const LinkIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>;
+
+const FileIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14.5 2 14.5 8 20 8"></polyline></svg>;
 
 const ResearchAgent: React.FC = () => {
-    const [prompt, setPrompt] = useState('');
-    const [activeResearch, setActiveResearch] = useState<Research | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
+  const { setQuickActionModal } = useAppContext();
+  const [query, setQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [results, setResults] = useState<IntelResult | null>(null);
+  const [error, setError] = useState('');
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null);
 
-    const history = useLiveQuery(() => 
-        db.research.where('type').equals('intel').reverse().sortBy('createdAt'), 
-    []);
+  const handleSearch = async () => {
+    if (!query.trim()) return;
 
-    const handleNewSearch = async (searchQuery: string) => {
-        if (!searchQuery.trim() || isLoading) return;
-        
-        setIsLoading(true);
-        setActiveResearch(null);
-        setError('');
+    setIsLoading(true);
+    setError('');
+    setResults(null);
 
-        try {
-            const intelResult = await getIntel(searchQuery);
-            const newResearch: Research = {
-                id: `res_${Date.now()}`,
-                query: searchQuery,
-                createdAt: new Date().toISOString(),
-                result: intelResult,
-                type: 'intel',
-                links: {}
-            };
-            await db.research.add(newResearch);
-            setActiveResearch(newResearch);
-            setPrompt('');
-        } catch (err: any) {
-            console.error("Error fetching intel:", err);
-            setError(err.message || "Sorry, I couldn't fetch that information. Please try again.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    
-    const handleSubmitForm = (e: React.FormEvent) => {
-        e.preventDefault();
-        handleNewSearch(prompt);
+    try {
+      const intelResults = await getIntel(query.trim());
+      setResults(intelResults);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Research failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-    
-    useEffect(() => {
-        const handleContextualCommand = (event: CustomEvent<VoiceCommand>) => {
-            if (event.detail.command === 'search' && event.detail.payload?.query) {
-                setPrompt(event.detail.payload.query);
-                handleNewSearch(event.detail.payload.query);
-            }
-        };
+  };
 
-        window.addEventListener('cue.contextual.command', handleContextualCommand as EventListener);
-        return () => {
-            window.removeEventListener('cue.contextual.command', handleContextualCommand as EventListener);
-        }
-    }, [isLoading]); // Re-add listener if isLoading changes
+  const handleImageClick = (image: ImageSearchResult) => {
+    window.open(image.link, '_blank');
+  };
 
-    useEffect(() => {
-        // If there's no active research and history exists, select the most recent one.
-        if (!activeResearch && history && history.length > 0) {
-            setActiveResearch(history[0]);
-        }
-    }, [history, activeResearch]);
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
+  const showFeedback = (message: string) => {
+    setActionFeedback(message);
+    setTimeout(() => setActionFeedback(null), 3000);
+  };
 
-    const result = activeResearch?.result as IntelResult;
+  // Action handlers for sending research to different areas
+  const handleSendToIntel = async (research: IntelResult) => {
+    try {
+      await researchStorageService.addToIntel(research);
+      showFeedback(`✅ Research added to Intel: ${research.query}`);
+    } catch (error) {
+      showFeedback(`❌ Failed to add to Intel: ${error}`);
+    }
+  };
 
-    return (
-        <div className="h-full flex bg-slate-900">
-            <aside className="w-1/3 max-w-xs h-full bg-slate-800 border-r border-slate-700 flex flex-col shrink-0">
-                <div className="p-4 border-b border-slate-700">
-                    <h1 className="text-xl font-bold text-white">Intel History</h1>
-                </div>
-                <div className="flex-grow overflow-y-auto">
-                    {history && history.length > 0 ? (
-                        <ul>
-                            {history.map(item => (
-                                <li key={item.id} className={`border-b border-slate-700 last:border-b-0 ${activeResearch?.id === item.id ? 'bg-slate-700/75' : ''}`}>
-                                    <button onClick={() => setActiveResearch(item)} className="w-full text-left p-4 hover:bg-slate-600/50 transition-colors">
-                                        <h3 className="font-semibold text-white truncate">{item.query}</h3>
-                                        <p className="text-sm text-slate-400 mt-1">{new Date(item.createdAt).toLocaleString()}</p>
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                         <div className="p-4 text-center text-slate-500">No history yet.</div>
-                    )}
-                </div>
-            </aside>
-            <main className="p-8 h-full flex flex-col flex-grow">
-                <h1 className="text-4xl font-extrabold text-white mb-2">The Intel</h1>
-                <p className="text-lg text-slate-400 mb-8">Gathering multi-format intelligence on any topic.</p>
-                
-                <form onSubmit={handleSubmitForm} className="flex gap-4 mb-8">
-                    <input
-                        type="text"
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        onFocus={(e) => CUE.context.setDictationTarget(e.target)}
-                        onBlur={() => CUE.context.setDictationTarget(null)}
-                        placeholder="e.g., Explain the trade routes of the Viking age"
-                        className="flex-grow bg-slate-700 border border-slate-600 rounded-lg p-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        disabled={isLoading}
-                    />
-                    <button 
-                        type="submit"
-                        disabled={isLoading || !prompt.trim()}
-                        className="bg-indigo-500 text-white rounded-lg px-6 py-4 font-semibold hover:bg-indigo-600 transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                        <SearchIcon/>
-                        {isLoading ? 'Gathering...' : 'New Search'}
-                    </button>
-                </form>
+  const handleSendToLab = async (research: IntelResult) => {
+    try {
+      await researchStorageService.addToLab(research);
+      showFeedback(`✅ Research added to Lab: ${research.query}`);
+    } catch (error) {
+      showFeedback(`❌ Failed to add to Lab: ${error}`);
+    }
+  };
 
-                <div className="flex-grow bg-slate-800 border border-slate-700 rounded-xl p-6 overflow-y-auto">
-                    {isLoading && (
-                        <div className="flex justify-center items-center h-full">
-                             <div className="w-4 h-4 bg-slate-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
-                             <div className="w-4 h-4 ml-2 bg-slate-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
-                             <div className="w-4 h-4 ml-2 bg-slate-400 rounded-full animate-pulse"></div>
-                        </div>
-                    )}
-                    {error && <div className="flex justify-center items-center h-full"><p className="text-red-400">{error}</p></div>}
-                    {result && (
-                        <div className="space-y-8">
-                            {result.images.length > 0 && (
-                                <div>
-                                    <h3 className="text-xl font-bold text-white mb-4">Image Gallery</h3>
-                                    <div className="flex gap-4 overflow-x-auto pb-4">
-                                        {result.images.map((src, index) => (
-                                            <img key={index} src={src} alt={`Intel result image ${index + 1}`} className="h-40 rounded-lg object-cover" />
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+  const handleSendToMagnaCarta = async (research: IntelResult) => {
+    try {
+      await researchStorageService.addToMagnaCarta(research);
+      showFeedback(`✅ Research added to Magna Carta: ${research.query}`);
+    } catch (error) {
+      showFeedback(`❌ Failed to add to Magna Carta: ${error}`);
+    }
+  };
 
-                            <div>
-                                 <h3 className="text-xl font-bold text-white mb-4">Overview</h3>
-                                 <div className="text-slate-300 whitespace-pre-wrap leading-relaxed prose prose-invert max-w-none prose-p:text-slate-300 prose-headings:text-white">
-                                    {result.text}
-                                </div>
-                            </div>
+  const handleSendToGrind = async (research: IntelResult) => {
+    try {
+      await researchStorageService.addToGrind(research);
+      showFeedback(`✅ Research added to Grind: ${research.query}`);
+    } catch (error) {
+      showFeedback(`❌ Failed to add to Grind: ${error}`);
+    }
+  };
 
-                            {result.pdfs.length > 0 && (
-                                 <div>
-                                    <h3 className="text-xl font-bold text-white mb-4">From the Stacks (PDFs)</h3>
-                                    <ul className="space-y-2">
-                                        {result.pdfs.map((pdfUrl, index) => (
-                                            <li key={index} className="bg-slate-700/50 p-3 rounded-lg">
-                                                <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline flex items-center">
-                                                    <FileIcon/>
-                                                    <span className="truncate">{pdfUrl.split('/').pop()}</span>
-                                                </a>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
+  const handleSendToAnalyzer = async (research: IntelResult) => {
+    try {
+      await researchStorageService.addToAnalyzer(research);
+      showFeedback(`✅ Research sent to Analyzer: ${research.query}`);
+    } catch (error) {
+      showFeedback(`❌ Failed to send to Analyzer: ${error}`);
+    }
+  };
 
-                            {result.sources.length > 0 && (
-                                <div>
-                                    <h3 className="text-xl font-bold text-white mb-4">Web Sources</h3>
-                                    <ul className="space-y-2">
-                                        {result.sources.map((source, index) => (
-                                            <li key={index} className="bg-slate-700/50 p-3 rounded-lg">
-                                                <a href={source.web.uri} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">
-                                                    <h4 className="font-semibold text-white truncate"><LinkIcon />{source.web.title || source.web.uri}</h4>
-                                                </a>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                    {!isLoading && !result && !error && (
-                        <div className="flex justify-center items-center h-full">
-                            <p className="text-slate-500">Select an item from history or start a new search.</p>
-                        </div>
-                    )}
-                </div>
-            </main>
+  return (
+    <div className="h-full flex flex-col bg-slate-900">
+      {/* Header - Compact */}
+      <div className="p-4 border-b border-slate-700 bg-slate-800">
+        <h1 className="text-2xl font-bold text-text-light mb-2">Research Agent</h1>
+        <p className="text-sm text-text-dark">
+          Get comprehensive research results with AI analysis and visual aids
+        </p>
+      </div>
+
+      {/* Search Input - Compact */}
+      <div className="p-4 border-b border-slate-700">
+        <div className="flex">
+          <div className="relative flex-1">
+            <SearchIcon />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Enter your research topic..."
+              className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-600 rounded-l-lg text-text-light placeholder-text-dark focus:outline-none focus:ring-2 focus:ring-accent-fuchsia focus:border-transparent"
+            />
+          </div>
+          <button
+            onClick={handleSearch}
+            disabled={isLoading || !query.trim()}
+            className="px-6 py-3 bg-accent-fuchsia hover:bg-accent-fuchsia/80 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-medium rounded-r-lg transition-colors duration-200 flex items-center"
+          >
+            {isLoading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <>
+                <SearchIcon />
+                <span className="ml-2">Research</span>
+              </>
+            )}
+          </button>
         </div>
-    );
+      </div>
+
+      {/* Action Feedback */}
+      {actionFeedback && (
+        <div className="mx-4 mt-4 p-3 bg-green-900/20 border border-green-700 rounded-lg">
+          <p className="text-green-400 text-sm">{actionFeedback}</p>
+        </div>
+      )}
+
+      {/* Error Display */}
+      {error && (
+        <div className="mx-4 mt-4 p-3 bg-red-900/20 border border-red-700 rounded-lg">
+          <p className="text-red-400 text-sm">{error}</p>
+        </div>
+      )}
+
+      {/* Results - Compact Layout */}
+      {results && (
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {/* Research Analysis - Compact */}
+          <div className="bg-slate-800 rounded-lg p-4">
+            <h2 className="text-lg font-semibold text-text-light mb-3 flex items-center">
+              <FileIcon />
+              Research Analysis: {results.query}
+            </h2>
+            <div className="prose prose-invert max-w-none">
+              <div 
+                className="text-text-light leading-relaxed text-sm max-h-32 overflow-y-auto"
+                dangerouslySetInnerHTML={{ 
+                  __html: results.analysis.replace(/\n/g, '<br>') 
+                }} 
+              />
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <ResearchActions 
+            research={results}
+            onSendToIntel={handleSendToIntel}
+            onSendToLab={handleSendToLab}
+            onSendToMagnaCarta={handleSendToMagnaCarta}
+            onSendToGrind={handleSendToGrind}
+            onSendToAnalyzer={handleSendToAnalyzer}
+          />
+
+          {/* Image Results - Compact */}
+          <ImageResults 
+            images={results.images} 
+            title="Research Images"
+            maxImages={4}
+            onImageClick={handleImageClick}
+          />
+
+          {/* Sources - Compact */}
+          {results.sources.length > 0 && (
+            <div className="bg-slate-800 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-text-light mb-3 flex items-center">
+                <LinkIcon />
+                Sources & References
+              </h3>
+              <div className="space-y-2">
+                {results.sources.slice(0, 3).map((source, index) => (
+                  <div key={index} className="flex items-center space-x-3">
+                    <span className="text-accent-fuchsia text-sm">•</span>
+                    <a
+                      href={source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 transition-colors duration-200 text-sm truncate"
+                    >
+                      {source.title}
+                    </a>
+                  </div>
+                ))}
+                {results.sources.length > 3 && (
+                  <p className="text-xs text-text-dark text-center">
+                    +{results.sources.length - 3} more sources
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Timestamp - Compact */}
+          <div className="text-center text-text-dark text-xs">
+            Research completed at {new Date(results.timestamp).toLocaleString()}
+          </div>
+        </div>
+      )}
+
+      {/* Quick Actions Footer */}
+      <div className="p-4 border-t border-slate-700 bg-slate-800">
+        <div className="text-center">
+          <button
+            onClick={() => setQuickActionModal('intel')}
+            className="inline-flex items-center px-4 py-2 bg-slate-700 hover:bg-slate-600 text-text-light rounded-lg transition-colors duration-200"
+          >
+            <SearchIcon />
+            <span className="ml-2">Quick Intel</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default ResearchAgent;

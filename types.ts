@@ -165,10 +165,15 @@ export interface GroundingChunk {
 }
 
 export interface IntelResult {
-    text: string;
-    sources: GroundingChunk[];
-    images: string[];
-    pdfs: string[];
+  query: string;
+  analysis: string;
+  images: ImageSearchResult[];
+  timestamp: string;
+  sources: {
+    title: string;
+    url: string;
+    type: string;
+  }[];
 }
 
 // --- Types for Career Blueprint ---
@@ -192,14 +197,31 @@ export interface SuggestedGoal {
 }
 
 export interface CareerBlueprint {
-    key_responsibilities: string[];
-    education_pathway: CareerPlanItem[];
-    extracurricular_activities: CareerPlanItem[];
-    community_service: CareerPlanItem[];
-    required_skills: {
-        hard: string[];
-        soft: string[];
-    };
-    college_recommendations: CollegeRec[];
-    suggested_goals: SuggestedGoal[];
+  key_responsibilities: string[];
+  education_pathway: {
+    title: string;
+    category: string;
+    description: string;
+  }[];
+  skills_development: string[];
+  timeline: string;
+  salary_range: string;
+  growth_potential: string;
+  images: ImageSearchResult[];
+  visualAids: {
+    careerPath: ImageSearchResult[];
+    education: ImageSearchResult[];
+  };
+}
+
+export interface ImageSearchResult {
+  title: string;
+  link: string;
+  image: {
+    src: string;
+    width: number;
+    height: number;
+  };
+  snippet: string;
+  source: string;
 }

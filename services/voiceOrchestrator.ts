@@ -135,7 +135,7 @@ class VoiceOrchestrator {
   
   private dictationTarget: HTMLInputElement | HTMLTextAreaElement | null = null;
   private speechEndTimeout: number | null = null;
-  private readonly SPEECH_PAUSE_DURATION = 4000; // 4 seconds
+  private readonly SPEECH_PAUSE_DURATION = 5000; // 5 seconds
 
   // Personality context
   private flow: number = 50;
@@ -160,6 +160,12 @@ class VoiceOrchestrator {
       if (this.currentPhase === 'LISTENING' && this.dictationTarget) {
           window.dispatchEvent(new Event('lex.dictation.started'));
       }
+  }
+
+  // Helper function to clean transcript text
+  private cleanTranscript(text: string): string {
+    // Remove periods and other punctuation that interfere with search
+    return text.replace(/[.!?]/g, '').trim();
   }
 
   private _updatePreferredVoice() {
@@ -214,6 +220,12 @@ class VoiceOrchestrator {
       this.recognition.continuous = true;
       this.recognition.interimResults = true;
       this.recognition.lang = 'en-US';
+      
+      // Disable automatic punctuation to prevent periods from being added
+      if ('webkitSpeechRecognition' in window) {
+        (this.recognition as any).interimResults = true;
+        (this.recognition as any).continuous = true;
+      }
 
       this.recognition.onstart = () => {
         this.dispatchPhaseChange('LISTENING');
@@ -238,10 +250,14 @@ class VoiceOrchestrator {
         const fullTranscript = (this.finalTranscript + interimTranscript).trim();
 
         if (this.dictationTarget) {
-            this.dictationTarget.value = fullTranscript;
+            // Clean the transcript for dictation to avoid punctuation issues
+            const cleanedTranscript = this.cleanTranscript(fullTranscript);
+            this.dictationTarget.value = cleanedTranscript;
             this.dictationTarget.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
         } else {
-            window.dispatchEvent(new CustomEvent('lex.stt.interim', { detail: { transcript: fullTranscript } }));
+            // Clean the transcript for better search and command processing
+            const cleanedTranscript = this.cleanTranscript(fullTranscript);
+            window.dispatchEvent(new CustomEvent('lex.stt.interim', { detail: { transcript: cleanedTranscript } }));
         }
 
         this.speechEndTimeout = window.setTimeout(() => this.processFinalTranscript(), this.SPEECH_PAUSE_DURATION);
@@ -288,11 +304,15 @@ class VoiceOrchestrator {
 
   private async handleFinalCommand(transcript: string) {
       if (!transcript) return;
+      
+      // Clean the transcript before processing
+      const cleanedTranscript = this.cleanTranscript(transcript);
+      
       this.micOff();
-      window.dispatchEvent(new CustomEvent('lex.chat.send', { detail: { text: transcript } }));
+      window.dispatchEvent(new CustomEvent('lex.chat.send', { detail: { text: cleanedTranscript } }));
       this.dispatchPhaseChange('THINKING');
 
-      const command = await processVoiceCommand(transcript, this.currentView, this.flow, this.audience);
+      const command = await processVoiceCommand(cleanedTranscript, this.currentView, this.flow, this.audience);
 
       if (command.action === 'navigate' && command.page) {
           window.CUE.page({ to: command.page });

@@ -34,6 +34,8 @@ jobs:
         run: |
           echo "VITE_GEMINI_API_KEY=${{ secrets.VITE_GEMINI_API_KEY }}" > .env.local
           echo "GEMINI_API_KEY=${{ secrets.VITE_GEMINI_API_KEY }}" >> .env.local
+          echo "VITE_GOOGLE_SEARCH_API_KEY=${{ secrets.VITE_GOOGLE_SEARCH_API_KEY }}" >> .env.local
+          echo "VITE_GOOGLE_SEARCH_ENGINE_ID=${{ secrets.VITE_GOOGLE_SEARCH_ENGINE_ID }}" >> .env.local
           echo "NODE_ENV=production" >> .env.local
           echo "Environment file created:"
           cat .env.local

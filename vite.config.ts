@@ -9,6 +9,8 @@ export default defineConfig(({ mode }) => {
         // Expose environment variables to the client
         'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY),
         'import.meta.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+        'import.meta.env.VITE_GOOGLE_SEARCH_API_KEY': JSON.stringify(env.VITE_GOOGLE_SEARCH_API_KEY),
+        'import.meta.env.VITE_GOOGLE_SEARCH_ENGINE_ID': JSON.stringify(env.VITE_GOOGLE_SEARCH_ENGINE_ID),
       },
       resolve: {
         alias: {
