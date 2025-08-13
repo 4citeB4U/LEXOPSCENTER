@@ -6,14 +6,13 @@ Before your LEXOPSCENTER application can run automatically on GitHub, you need t
 
 ### 1. **Set Up Local Environment**
 ```bash
-# Run the setup script (Windows)
-setup-env.bat
-
-# Or manually create .env.local file:
-# GEMINI_API_KEY=your_actual_gemini_api_key_here
-# VITE_GEMINI_API_KEY=your_actual_gemini_api_key_here
-# NODE_ENV=development
+# Your .env.local file should contain:
+VITE_GEMINI_API_KEY=your_actual_gemini_api_key_here
+GEMINI_API_KEY=your_actual_gemini_api_key_here
+NODE_ENV=development
 ```
+
+**Note:** Your `.env.local` file is already configured correctly with both `VITE_GEMINI_API_KEY` and `GEMINI_API_KEY`.
 
 ### 2. **Enable GitHub Pages**
 - Go to your repository: `https://github.com/4citeB4U/LEXOPSCENTER`

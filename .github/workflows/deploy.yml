@@ -25,12 +25,15 @@ jobs:
       
     - name: Create environment file
       run: |
-        echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env.local
-        echo "VITE_GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env.local
+        echo "VITE_GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env.local
+        echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env.local
         echo "NODE_ENV=production" >> .env.local
         
     - name: Build
       run: npm run build
+      
+    - name: Copy 404.html for SPA routing
+      run: cp index.html dist/404.html
       
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
