@@ -12,8 +12,6 @@ const APP_SHELL_URLS = [
 const STATIC_ASSET_URLS = [
     'https://cdn.tailwindcss.com',
     'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap',
-    '/LEXOPSCENTER/logo192.png',
-    '/LEXOPSCENTER/logo512.png',
 ];
 
 self.addEventListener('install', (event) => {

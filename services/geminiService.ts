@@ -1,11 +1,14 @@
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import { View, IntelResult, GroundingChunk, VoiceCommand, Audience, CareerBlueprint, CareerPlanItem, SuggestedGoal, CollegeRec, Domain, Horizon } from '../types';
 
-if (!process.env.API_KEY) {
-  console.warn("API_KEY environment variable not set. Gemini API calls will fail.");
+// Use Vite's import.meta.env for environment variables
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
+
+if (!API_KEY) {
+    console.warn("API_KEY environment variable not set. Gemini API calls will fail.");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+const ai = new GoogleGenAI({ apiKey: API_KEY! });
 
 const getPersonalityInstruction = (flow: number): string => {
     if (flow >= 90) return "You must adopt a street-hustle, confident, and slang-heavy tone. Be direct and use modern slang naturally. You are a sharp, savvy co-pilot from the streets who knows how to get things done.";
@@ -16,7 +19,7 @@ const getPersonalityInstruction = (flow: number): string => {
 // --- REGULAR CHAT FUNCTIONS ---
 
 export const lexRespond = async (prompt: string, flow: number, audience: Audience): Promise<string> => {
-  if (!process.env.API_KEY) {
+  if (!API_KEY) {
     return "I'm sorry, the application is not configured with an API key for the AI service. Please contact the developer.";
   }
   const personality = getPersonalityInstruction(flow);
@@ -50,7 +53,7 @@ const commandSchema = {
 };
 
 export const processVoiceCommand = async (prompt: string, currentView: View, flow: number, audience: Audience): Promise<VoiceCommand> => {
-    if (!process.env.API_KEY) return { action: 'talk', spokenResponse: "I'm sorry, the application is not configured with an API key." };
+    if (!API_KEY) return { action: 'talk', spokenResponse: "I'm sorry, the application is not configured with an API key." };
     const personality = getPersonalityInstruction(flow);
     try {
         const systemInstruction = `You are the brain of a voice assistant named LEX, integrated into an academic operations app. ${personality} Your current view is '${currentView}'. Your audience setting is '${audience}', adjust your spoken response content appropriately. Your job is to understand a user's request and return a JSON object that determines the application's response according to the provided schema. Do not use asterisks or any markdown for emphasis in your spokenResponse.
@@ -84,7 +87,7 @@ export const processVoiceCommand = async (prompt: string, currentView: View, flo
 // --- INTEL & BLUEPRINT SUITE ---
 
 export const getIntel = async (query: string): Promise<IntelResult> => {
-    if (!process.env.API_KEY) throw new Error("API key not configured.");
+    if (!API_KEY) throw new Error("API key not configured.");
     
     const prompt = `Provide a comprehensive overview of "${query}". Your response should be well-structured for a student. In your text, also try to include markdown links for relevant images and direct links to academic papers or PDFs on the topic.`;
     
@@ -111,7 +114,7 @@ export const getIntel = async (query: string): Promise<IntelResult> => {
 };
 
 export const generateCareerBlueprint = async (careerTitle: string, description: string): Promise<CareerBlueprint> => {
-    if (!process.env.API_KEY) throw new Error("API key not configured.");
+    if (!API_KEY) throw new Error("API key not configured.");
     
     const prompt = `Analyze the career path for a "${careerTitle}". The user's goal is: "${description}".
 Provide a detailed breakdown. Your response must be a single, valid JSON object and nothing else. Do not wrap it in markdown like \`\`\`json. The JSON object must have the following structure:
@@ -161,7 +164,7 @@ Provide a detailed breakdown. Your response must be a single, valid JSON object 
 // --- ANALYZER (DOCUMENT/IMAGE ANALYSIS) ---
 
 export const analyzeFile = async (prompt: string, base64Data: string, mimeType: string): Promise<string> => {
-    if (!process.env.API_KEY) {
+    if (!API_KEY) {
         return "I'm sorry, the application is not configured with an API key for the AI service.";
     }
     

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
+import { GoogleGenAI } from '@google/genai';
+import { View } from '../../types';
 
-// This is a simplified version of the logic from geminiService, adapted for this component.
-// It's better to have it here to handle the specific response with citations.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+// Use Vite's import.meta.env for environment variables
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
+
+const ai = new GoogleGenAI({ apiKey: API_KEY! });
 
 interface GroundingChunk {
     web: {
@@ -28,14 +30,14 @@ const SchoolExplorer: React.FC = () => {
         setSources([]);
         setError('');
 
-        if (!process.env.API_KEY) {
+        if (!API_KEY) {
             setError("API key is not configured. Please contact the developer.");
             setIsLoading(false);
             return;
         }
 
         try {
-            const result: GenerateContentResponse = await ai.models.generateContent({
+            const result = await ai.models.generateContent({
                 model: "gemini-2.5-flash",
                 contents: `Provide a detailed overview of the following school: ${query}. Include information on its history, notable programs, campus life, and admission statistics.`,
                 config: {
