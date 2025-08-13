@@ -1,0 +1,36 @@
+
+{
+  "name": "LΞX Ops Center",
+  "short_name": "LEX",
+  "description": "LΞX is your ops center, locked in. A private, voice-first co-pilot for your academic life.",
+  "start_url": "/LEXOPSCENTER/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#a855f7",
+  "orientation": "portrait-primary",
+  "scope": "/LEXOPSCENTER/",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/LEXOPSCENTER/LEX.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "education", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Research Agent",
+      "short_name": "Research",
+      "description": "Quick access to research tools",
+      "url": "/LEXOPSCENTER/#/research"
+    },
+    {
+      "name": "Career Advisor",
+      "short_name": "Career",
+      "description": "Career planning and guidance",
+      "url": "/LEXOPSCENTER/#/career"
+    }
+  ]
+}

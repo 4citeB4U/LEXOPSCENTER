@@ -1,0 +1,479 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LΞX Ops Center</title>
+    <link rel="icon" type="image/svg+xml" href="/LEXOPSCENTER/LEX.svg">
+    <link rel="manifest" href="/LEXOPSCENTER/manifest.json">
+    <meta name="theme-color" content="#a855f7">
+    <meta name="description" content="LΞX is your ops center, locked in. A private, voice-first co-pilot for your academic life.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --primary-blue: #3b82f6;
+        --accent-fuchsia: #d946ef;
+        --positive-green: #22c55e;
+        --warning-red: #ef4444;
+        --bg-main: #0A0A0F;
+        --bg-surface: #111827; /* gray-900 */
+        --text-light: #E2E8F0;
+        --text-dark: #94A3B8;
+        --border-color: #374151; /* gray-700 */
+        --border-radius: 0.75rem; /* 12px */
+        
+        /* Enhanced color palette */
+        --text-primary: #ffffff;
+        --text-secondary: #e2e8f0;
+        --text-accent: #fbbf24;
+        --text-success: #10b981;
+        --text-info: #06b6d4;
+        --text-warning: #f59e0b;
+        --text-danger: #ef4444;
+        --text-muted: #64748b;
+        
+        /* Interactive colors */
+        --interactive-primary: #3b82f6;
+        --interactive-secondary: #6366f1;
+        --interactive-success: #10b981;
+        --interactive-warning: #f59e0b;
+        --interactive-danger: #ef4444;
+        
+        /* Background variations */
+        --bg-card: #1e293b;
+        --bg-card-hover: #334155;
+        --bg-elevated: #0f172a;
+        --bg-accent: #1e1b4b;
+      }
+      
+      body {
+        background-color: var(--bg-main);
+        color: var(--text-light);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+      }
+      
+      /* Enhanced text styling */
+      .text-primary { color: var(--text-primary) !important; }
+      .text-secondary { color: var(--text-secondary) !important; }
+      .text-accent { color: var(--text-accent) !important; }
+      .text-success { color: var(--text-success) !important; }
+      .text-info { color: var(--text-info) !important; }
+      .text-warning { color: var(--text-warning) !important; }
+      .text-danger { color: var(--text-danger) !important; }
+      .text-muted { color: var(--text-muted) !important; }
+      
+      /* Text emphasis and hierarchy */
+      .text-emphasis {
+        color: var(--text-accent);
+        font-weight: 600;
+        text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+      }
+      
+      .text-highlight {
+        background: linear-gradient(120deg, var(--text-accent) 0%, var(--accent-fuchsia) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 700;
+      }
+      
+      .text-glow {
+        text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+      }
+      
+      /* Interactive text states */
+      .text-interactive {
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
+      
+      .text-interactive:hover {
+        color: var(--text-accent);
+        text-shadow: 0 0 8px currentColor;
+      }
+      
+      /* Card and component styling */
+      .card-enhanced {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        transition: all 0.2s ease;
+      }
+      
+      .card-enhanced:hover {
+        background: var(--bg-card-hover);
+        border-color: var(--interactive-primary);
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+      }
+      
+      /* Button enhancements */
+      .btn-primary {
+        background: linear-gradient(135deg, var(--interactive-primary) 0%, var(--interactive-secondary) 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+      }
+      
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(59, 130, 246, 0.4);
+      }
+      
+      .btn-success {
+        background: linear-gradient(135deg, var(--interactive-success) 0%, #059669 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      }
+      
+      .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(16, 185, 129, 0.4);
+      }
+      
+      .btn-danger {
+        background: linear-gradient(135deg, var(--interactive-danger) 0%, #dc2626 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+      }
+      
+      .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(239, 68, 68, 0.4);
+      }
+      /* Greeting Text Effects */
+      @keyframes fire-flicker {
+        0%, 100% { text-shadow: 0 0 4px #fff, 0 0 11px #fff, 0 0 19px #fff, 0 0 40px var(--warning-red), 0 0 80px var(--warning-red); }
+        50% { text-shadow: 0 0 4px #fff, 0 0 10px #fff, 0 0 18px #fff, 0 0 38px var(--warning-red), 0 0 75px var(--warning-red); }
+      }
+      .text-effect-fire { color: #fca5a5; animation: fire-flicker 2s ease-in-out infinite alternate; }
+      @keyframes electric-crackle {
+        0% { text-shadow: 0 0 5px var(--primary-blue), 0 0 10px var(--primary-blue); }
+        100% { text-shadow: 0 0 5px var(--primary-blue), 0 0 12px var(--primary-blue); }
+      }
+      .text-effect-electric { color: #93c5fd; animation: electric-crackle 0.1s linear infinite alternate; }
+      .text-effect-glow { color: #fff; text-shadow: 0 0 7px var(--text-light), 0 0 10px var(--text-light); }
+
+      /* Lex Console Animations */
+      @keyframes listening-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(217, 70, 239, 0.7); }
+        50% { box-shadow: 0 0 0 14px rgba(217, 70, 239, 0); }
+      }
+      .lex-console-listening {
+        background-color: var(--accent-fuchsia);
+        animation: listening-pulse 1.5s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+      }
+      @keyframes thinking-chase {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .lex-console-thinking-ring {
+        position: absolute;
+        width: 100%; height: 100%;
+        border-radius: 50%;
+        border: 4px solid transparent;
+        border-top-color: var(--primary-blue);
+        animation: thinking-chase 1s linear infinite;
+      }
+
+      /* Mobile Responsive Styles */
+      .mobile-header { display: none; }
+      .backdrop { display: none; }
+
+      @media (max-width: 768px) {
+        .mobile-header {
+          display: flex;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 60px;
+          background-color: var(--bg-surface);
+          border-bottom: 1px solid var(--border-color);
+          z-index: 50;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 1rem;
+        }
+        .sidebar, .right-rail {
+            position: fixed;
+            top: 0;
+            height: 100vh;
+            z-index: 100;
+            transition: transform 0.3s ease-in-out;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .sidebar {
+            left: 0;
+            transform: translateX(-100%);
+        }
+        .right-rail {
+            right: 0;
+            transform: translateX(100%);
+        }
+        .sidebar.sidebar-open, .right-rail.right-rail-open {
+            transform: translateX(0);
+        }
+        .backdrop {
+            display: block;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0,0,0,0.6);
+            z-index: 99;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .workspace {
+          padding-top: 60px; /* Space for mobile header */
+          padding-bottom: 128px; /* Space for bottom bar */
+        }
+        .bottom-bar {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+        }
+      }
+
+      /* Desktop Layout - No padding-top */
+      @media (min-width: 769px) {
+        .workspace {
+          padding-top: 0; /* No padding on desktop */
+          padding-bottom: 0; /* No padding on desktop */
+        }
+        .main-content-area {
+          height: 100vh;
+          overflow: hidden;
+        }
+      }
+
+      /* Layout Fixes */
+      .workspace {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+        /* Ensure content starts at the top on desktop */
+        padding-top: 0;
+      }
+
+      .main-content {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1rem;
+        max-width: 100%;
+        /* Ensure content is visible */
+        margin-top: 0;
+      }
+
+      .sidebar {
+        width: 280px;
+        min-width: 280px;
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        /* Ensure sidebar starts at top */
+        margin-top: 0;
+        padding-top: 0;
+      }
+
+      .right-rail {
+        width: 320px;
+        min-width: 320px;
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        /* Ensure right rail starts at top */
+        margin-top: 0;
+        padding-top: 0;
+      }
+
+      /* Main content area positioning */
+      .main-content-area {
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+        /* Ensure content starts at the very top */
+        margin-top: 0;
+        padding-top: 0;
+        /* Add top margin to prevent content from being cut off */
+        margin-top: 1rem;
+      }
+
+      /* Responsive Grid */
+      .grid-container {
+        display: grid;
+        grid-template-columns: 280px 1fr 320px;
+        gap: 1rem;
+        height: 100vh;
+        max-width: 100vw;
+        /* Ensure grid starts at top */
+        margin-top: 0;
+        padding-top: 0;
+      }
+
+      @media (max-width: 1200px) {
+        .grid-container {
+          grid-template-columns: 280px 1fr;
+        }
+        .right-rail {
+          display: none;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .grid-container {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto 1fr auto;
+        }
+        .sidebar {
+          display: none;
+        }
+        .right-rail {
+          display: none;
+        }
+      }
+
+      /* Content Overflow Fixes */
+      .content-area {
+        max-width: 100%;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        hyphens: auto;
+      }
+
+      .card {
+        max-width: 100%;
+        overflow: hidden;
+      }
+
+      .text-content {
+        max-width: 100%;
+        overflow-wrap: break-word;
+      }
+
+      /* Ensure the app container takes full height */
+      .h-screen {
+        height: 100vh !important;
+        min-height: 100vh;
+        max-height: 100vh;
+        /* Add padding to prevent content from being cut off */
+        padding-top: 1rem;
+      }
+
+      /* Fix for content being pushed up */
+      .flex-grow {
+        flex-grow: 1;
+        /* Ensure content fills available space */
+        min-height: 0;
+        /* Add top margin to prevent cutoff */
+        margin-top: 0.5rem;
+      }
+
+      /* Ensure workspace content is properly positioned */
+      .workspace > * {
+        margin-top: 0;
+        padding-top: 0;
+      }
+
+      /* Fix for the main app container */
+      .h-screen.w-screen {
+        padding-top: 1rem;
+        box-sizing: border-box;
+      }
+
+      /* Ensure the main content starts below any potential header */
+      .main-content-area {
+        position: relative;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+
+      /* Fix for the workspace positioning */
+      .workspace {
+        position: relative;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        /* Ensure content starts at proper position */
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+      }
+    </style>
+    <script>
+      // Dev reset logic from the prompt
+      if (new URLSearchParams(window.location.search).has('fresh')) {
+        window.addEventListener('load', () => {
+            console.log('FRESH START: Clearing all caches and storage.');
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (const registration of registrations) { registration.unregister(); }
+              }).catch(err => console.error('Error unregistering SWs:', err));
+            }
+            caches.keys().then(keys => { keys.forEach(key => caches.delete(key)); });
+            localStorage.clear();
+            sessionStorage.clear();
+            indexedDB.databases && indexedDB.databases().then(dbs => {
+              dbs.forEach(db => indexedDB.deleteDatabase(db.name));
+            });
+            const url = new URL(window.location);
+            url.searchParams.delete('fresh');
+            window.location.replace(url);
+        });
+      }
+      // Tailwind Configuration
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'primary-blue': 'var(--primary-blue)',
+              'accent-fuchsia': 'var(--accent-fuchsia)',
+              'positive-green': 'var(--positive-green)',
+              'warning-red': 'var(--warning-red)',
+              'bg-main': 'var(--bg-main)',
+              'bg-surface': 'var(--bg-surface)',
+              'text-light': 'var(--text-light)',
+              'text-dark': 'var(--text-dark)',
+              'border-color': 'var(--border-color)',
+            },
+            borderRadius: {
+              'DEFAULT': 'var(--border-radius)',
+              'lg': 'var(--border-radius)',
+              'xl': 'calc(var(--border-radius) + 4px)',
+              '2xl': 'calc(var(--border-radius) + 8px)',
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+          },
+        },
+      }
+    </script>
+  <script type="module" crossorigin src="/LEXOPSCENTER/assets/index-BZJLlvXk.js"></script>
+  <link rel="modulepreload" crossorigin href="/LEXOPSCENTER/assets/vendor-c5ypKtDW.js">
+  <link rel="modulepreload" crossorigin href="/LEXOPSCENTER/assets/ai-sfLgAeOs.js">
+</head>
+<body class="bg-bg-main text-text-light">
+    <div id="root"></div>
+</body>
+</html>
