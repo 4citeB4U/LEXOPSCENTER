@@ -1,180 +1,80 @@
 
-import React, { useEffect, useLayoutEffect, useRef, useState, TouchEvent } from 'react';
-import Sidebar from './components/layout/Sidebar';
-import Workspace from './components/layout/Workspace';
-import RightRail from './components/layout/RightRail';
-import BottomBar from './components/layout/BottomBar';
-import { useAppContext } from './contexts/AppContext';
+import React, { Suspense, useEffect } from 'react';
+import { AppProvider } from './contexts/AppContext';
+import { VoiceControlProvider } from './contexts/VoiceControlContext';
 import OnboardingFlow from './components/views/OnboardingFlow';
-import { composeWelcome } from './services/lex-vernacular-patch';
-import CUE from './services/cueRuntime';
-import QuickActionModals from './components/modals/QuickActionModals';
+import Workspace from './components/layout/Workspace';
+import Sidebar from './components/layout/Sidebar';
+import RightRail from './components/layout/RightRail';
 import MobileHeader from './components/layout/MobileHeader';
-import BackgroundAmbiance from './components/ambiance/BackgroundAmbiance';
-import PWAInstallPrompt from './components/PWAInstallPrompt';
+import Footer from './components/layout/Footer';
+import DesktopHeader from './components/layout/DesktopHeader';
+import ErrorBoundary from './components/ErrorBoundary';
+import ConfigurationStatus from './components/ConfigurationStatus';
+import { Loader2 } from 'lucide-react';
+import { primeLexIntelImages } from './src/lib/lexintelImages'; // Corrected import path
 
-
-const BackupReminder: React.FC<{ onDismiss: () => void; onBackup: () => void }> = ({ onDismiss, onBackup }) => (
-    <div className="fixed top-0 left-0 right-0 bg-yellow-800/90 backdrop-blur-sm p-3 text-center text-sm text-white z-50 flex items-center justify-center gap-4">
-        <span>Heads up! It's been a while since your last data backup. It's a good idea to save your work regularly.</span>
-        <div className="flex gap-2">
-            <button onClick={onBackup} className="px-3 py-1 bg-primary-blue rounded font-semibold">Go to Garage</button>
-            <button onClick={onDismiss} className="px-3 py-1 bg-slate-600 rounded">Remind me Later</button>
-        </div>
+// Loading component
+const LoadingSpinner = () => (
+  <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+    <div className="text-center">
+      <Loader2 className="w-12 h-12 text-accent-fuchsia animate-spin mx-auto mb-4" />
+      <h2 className="text-xl font-semibold text-white mb-2">Loading LEX Ops Center</h2>
+      <p className="text-slate-400">Initializing your academic co-pilot...</p>
     </div>
+  </div>
 );
 
-
 function App() {
-  const { 
-      isOnboarding, currentView, flow, userProfile,
-      isSidebarOpen, isRightRailOpen, closeSidebars, toggleSidebar, toggleRightRail
-  } = useAppContext();
-
-  const [isReadyForConversation, setIsReadyForConversation] = useState(false);
-  const [showBackupReminder, setShowBackupReminder] = useState(false);
-  const prevView = useRef(currentView);
-  const touchStartRef = useRef<number | null>(null);
-
-  // Apply layout and theme settings from user profile
-  useLayoutEffect(() => {
-    if(userProfile?.borderRadius !== undefined) {
-        document.documentElement.style.setProperty('--border-radius', `${userProfile.borderRadius}px`);
-    } else {
-        document.documentElement.style.setProperty('--border-radius', '0.75rem');
-    }
-  }, [userProfile?.borderRadius]);
-  
-  // Backup Reminder Logic
+  // Prime the image search at app startup
   useEffect(() => {
-    if(isOnboarding) return;
+    primeLexIntelImages();
+  }, []);
 
-    const lastReminderTimestamp = localStorage.getItem('lexLastBackupTimestamp');
-    if (!lastReminderTimestamp) {
-      // If no timestamp, set it to now but show reminder in 14 days
-      localStorage.setItem('lexLastBackupTimestamp', new Date().toISOString());
-    } else {
-      const lastReminderDate = new Date(lastReminderTimestamp);
-      const now = new Date();
-      const fourteenDaysInMillis = 14 * 24 * 60 * 60 * 1000;
-      if (now.getTime() - lastReminderDate.getTime() > fourteenDaysInMillis) {
-        setShowBackupReminder(true);
-      }
-    }
-  }, [isOnboarding]);
-
-  // Update Voice Orchestrator with current view context
+  // Load and apply customization settings on startup
   useEffect(() => {
-    if (!isOnboarding) {
-        CUE.context.setView(currentView);
-    }
-  }, [currentView, isOnboarding]);
-
-  // Continuous Conversation Engine
-  useEffect(() => {
-    if (isOnboarding) return;
-
-    if (!isReadyForConversation) {
-      setIsReadyForConversation(true);
-      return;
+    // Load background image
+    const backgroundImage = localStorage.getItem('lex-background-image');
+    if (backgroundImage) {
+      document.documentElement.style.setProperty('--app-background-image', `url(${backgroundImage})`);
     }
 
-    if (prevView.current !== currentView) {
-      const timer = setTimeout(() => {
-        if (window.speechSynthesis.speaking) return;
-        const welcomeLine = composeWelcome(flow, currentView);
-        CUE.tts.speak(welcomeLine);
-      }, 200);
-
-      prevView.current = currentView;
-      return () => clearTimeout(timer);
+    // Load background opacity
+    const backgroundOpacity = localStorage.getItem('lex-background-opacity');
+    if (backgroundOpacity) {
+      document.documentElement.style.setProperty('--app-background-opacity', backgroundOpacity);
     }
-  }, [currentView, isOnboarding, flow, isReadyForConversation]);
-  
-  // Swipe gestures for mobile
-  useEffect(() => {
-      const handleTouchStart = (e: globalThis.TouchEvent) => {
-          if (e.touches.length === 1) {
-              touchStartRef.current = e.touches[0].clientX;
-          }
-      };
-      
-      const handleTouchEnd = (e: globalThis.TouchEvent) => {
-          if (touchStartRef.current !== null && e.changedTouches.length === 1) {
-              const touchEnd = e.changedTouches[0].clientX;
-              const swipeDistance = touchEnd - touchStartRef.current;
-              const startX = touchStartRef.current;
-              
-              const screenWidth = window.innerWidth;
-              const edgeThreshold = 40; // Pixels from edge to trigger swipe
-
-              // Swipe right to open left sidebar
-              if (startX < edgeThreshold && swipeDistance > 50 && !isSidebarOpen) {
-                  toggleSidebar();
-              }
-              // Swipe left to open right sidebar
-              else if (startX > screenWidth - edgeThreshold && swipeDistance < -50 && !isRightRailOpen) {
-                  toggleRightRail();
-              }
-          }
-          touchStartRef.current = null;
-      };
-
-      window.addEventListener('touchstart', handleTouchStart);
-      window.addEventListener('touchend', handleTouchEnd);
-      return () => {
-          window.removeEventListener('touchstart', handleTouchStart);
-          window.removeEventListener('touchend', handleTouchEnd);
-      };
-  }, [isSidebarOpen, isRightRailOpen, toggleSidebar, toggleRightRail]);
-  
-  if (isOnboarding) {
-    return <OnboardingFlow />;
-  }
-
-  const layoutClass = userProfile?.layout === 'main_sidebar_chat' ? 'layout-main-sidebar-chat' : 'layout-sidebar-main-chat';
-
-  const handleDismissReminder = () => {
-      localStorage.setItem('lexLastBackupTimestamp', new Date().toISOString());
-      setShowBackupReminder(false);
-  };
-  
-  const handleGoToBackup = () => {
-      CUE.page({to: 'garage'});
-      handleDismissReminder();
-  };
-
-  const isBackdropVisible = isSidebarOpen || isRightRailOpen;
+  }, []);
 
   return (
-    <div className="h-screen w-screen flex flex-col font-sans antialiased overflow-hidden">
-      <BackgroundAmbiance />
-      {showBackupReminder && <BackupReminder onDismiss={handleDismissReminder} onBackup={handleGoToBackup} />}
-      <MobileHeader onMenuClick={toggleSidebar} onChatClick={toggleRightRail} />
-
-      <div className={`main-content-area flex flex-grow overflow-hidden ${layoutClass}`}>
-        <Sidebar />
-        <Workspace />
-        <RightRail />
-      </div>
-
-      <BottomBar />
-      <QuickActionModals />
-      {isBackdropVisible && <div className="backdrop" onClick={closeSidebars}></div>}
-
-      <PWAInstallPrompt />
-
-      <div className="fixed bottom-2 right-4 text-xs text-slate-700 pointer-events-none">
-        This is a leeway Industries product. By rapidwebdevelop.com.
-      </div>
-      <style>{`
-        .layout-sidebar-main-chat { display: flex; }
-        .layout-main-sidebar-chat { display: flex; }
-        .layout-main-sidebar-chat > .sidebar { order: 2; }
-        .layout-main-sidebar-chat > .workspace { order: 1; }
-        .layout-main-sidebar-chat > .right-rail { order: 3; }
-      `}</style>
-    </div>
+    <ErrorBoundary>
+      <AppProvider>
+        <VoiceControlProvider>
+          <Suspense fallback={<LoadingSpinner />}>
+            <div className="app-container h-screen bg-bg-main text-text-light overflow-hidden">
+              {/* Show DesktopHeader on desktop, MobileHeader on mobile */}
+              <div className="block md:hidden">
+                <MobileHeader onMenuClick={() => {}} onChatClick={() => {}} />
+              </div>
+              <div className="hidden md:block">
+                <DesktopHeader />
+              </div>
+              <div className="flex h-full">
+                <Sidebar />
+                {/* Main content area should not overlap sidebar or chat */}
+                <div className="flex-1 flex flex-col overflow-auto">
+                  <Workspace />
+                </div>
+                <RightRail />
+              </div>
+              <OnboardingFlow />
+              <ConfigurationStatus />
+              <Footer />
+            </div>
+          </Suspense>
+        </VoiceControlProvider>
+      </AppProvider>
+    </ErrorBoundary>
   );
 }
 

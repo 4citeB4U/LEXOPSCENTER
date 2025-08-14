@@ -2,20 +2,30 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useAppContext } from '../../contexts/AppContext';
 import { db } from '../../services/db';
 import { getIntel } from '../../services/geminiService';
 import CUE from '../../services/cueRuntime';
 import type { Note, ChatMessage, Assignment, Research, IntelResult } from '../../types';
+import { 
+  Plus, 
+  Trash2, 
+  Archive, 
+  Mic, 
+  CheckSquare, 
+  Send, 
+  FileText, 
+  Link 
+} from 'lucide-react';
 
-// Helper icons
-const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
-const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>;
-const ArchiveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>;
-const MicIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 inline-block" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>;
+const PlusIcon = () => <Plus className="w-5 h-5" />;
+const TrashIcon = () => <Trash2 className="w-4 h-4" />;
+const ArchiveIcon = () => <Archive className="w-4 h-4" />;
+const MicIcon = () => <Mic className="h-4 w-4 mr-2 inline-block" />;
 const ActionIcon: React.FC<{children: React.ReactNode}> = ({children}) => <div className="w-4 h-4 mr-2">{children}</div>;
-const CreateAssignmentIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v7z"></path></svg>;
-const SendToIntelIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>;
-const LinkToMagnaCartaIcon = () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14.5 2 14.5 8 20 8"></polyline></svg>;
+const CreateAssignmentIcon = () => <CheckSquare className="w-4 h-4" />;
+const SendToIntelIcon = () => <Send className="w-4 h-4" />;
+const LinkToMagnaCartaIcon = () => <Link className="w-4 h-4" />;
 
 const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
     const isUser = message.role === 'user';
@@ -214,11 +224,38 @@ const Notes: React.FC = () => {
                 <TrashIcon />
               </button>
             </div>
-            <div className="flex-grow overflow-y-auto">
-              {activeNote.type === 'conversation' 
+            <div className="flex-grow overflow-y-auto p-8 bg-gray-900/80 rounded-xl mx-8 my-6 shadow-xl">
+              {/* Metadata Section */}
+              <div className="mb-6 flex flex-wrap gap-8 items-center justify-between">
+                <div>
+                  <span className="text-xs text-slate-400 mr-4">Created: {activeNote.createdAt ? new Date(activeNote.createdAt).toLocaleString() : 'N/A'}</span>
+                  <span className="text-xs text-slate-400">Updated: {activeNote.updatedAt ? new Date(activeNote.updatedAt).toLocaleString() : 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-slate-400">Source: {activeNote.meta?.source || 'Unknown'}</span>
+                  {activeNote.meta?.originalFileName && (
+                    <span className="text-xs text-slate-400 ml-4">File: {activeNote.meta.originalFileName}</span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  {activeNote.links?.assignments?.length > 0 && (
+                    <span className="text-xs text-indigo-400">Linked to Grind</span>
+                  )}
+                  {activeNote.links?.research?.length > 0 && (
+                    <span className="text-xs text-blue-400">Linked to Intel</span>
+                  )}
+                  {activeNote.links?.magnaCarta?.length > 0 && (
+                    <a href="#" className="text-xs text-purple-400 underline">Linked to Magna Carta</a>
+                  )}
+                </div>
+              </div>
+              {/* Note Content Section */}
+              <div className="w-full">
+                {activeNote.type === 'conversation' 
                   ? <ConversationView note={activeNote} /> 
                   : <TextEditorView note={activeNote} onUpdate={updateNote} />
-              }
+                }
+              </div>
             </div>
             <div className="p-4 border-t border-border-color bg-gray-900/80 shrink-0">
               <h3 className="text-sm font-semibold text-slate-400 mb-2">Actions</h3>
@@ -229,7 +266,7 @@ const Notes: React.FC = () => {
                   <button onClick={handleSendToIntel} className="flex items-center text-sm px-3 py-2 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors">
                     <ActionIcon><SendToIntelIcon/></ActionIcon>Send to Intel
                   </button>
-                  <button disabled className="flex items-center text-sm px-3 py-2 bg-slate-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                  <button onClick={() => {/* TODO: Link to Magna Carta logic */}} className="flex items-center text-sm px-3 py-2 bg-slate-700 hover:bg-slate-600 rounded-md transition-colors">
                     <ActionIcon><LinkToMagnaCartaIcon/></ActionIcon>Link to Magna Carta
                   </button>
               </div>

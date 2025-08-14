@@ -1,10 +1,11 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useVoiceControl } from '../../contexts/VoiceControlContext';
 import { ChatMessage, Phase } from '../../types';
+import { Save, Send } from 'lucide-react';
 
-const SaveIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 8 12 3 7 8"></polyline><polyline points="12 3 12 15"></polyline></svg>;
+const SaveIcon = () => <Save className="w-4 h-4" />;
 
 const PhaseIndicator: React.FC<{ phase: Phase, transcript: string }> = ({ phase, transcript }) => {
     const textClasses = "text-center text-sm text-slate-400";
@@ -18,13 +19,13 @@ const PhaseIndicator: React.FC<{ phase: Phase, transcript: string }> = ({ phase,
 
     const {text, color} = phaseInfo[phase];
 
-    return (
-        <div className={`p-4 border-b border-slate-700`}>
-            <div className={`border-2 ${color} rounded-lg p-3 transition-all`}>
-                <p className={textClasses}>{text}</p>
-            </div>
-        </div>
-    );
+  return (
+    <div className="border-b border-slate-700" style={{height: '56px', padding: '0.7rem 1rem'}}>
+      <div className={`border-2 ${color} rounded-lg p-2 transition-all h-full flex items-center justify-center`}>
+        <p className={textClasses}>{text}</p>
+      </div>
+    </div>
+  );
 };
 
 const ChatBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
@@ -54,10 +55,35 @@ const RightRail: React.FC = () => {
   const { chatHistory, saveAndClearChat, isRightRailOpen } = useAppContext();
   const { phase, transcript } = useVoiceControl();
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const [chatInput, setChatInput] = useState('');
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
+
+  const handleSendMessage = () => {
+    if (chatInput.trim()) {
+      // Add user message to chat
+      const userMessage: ChatMessage = {
+        role: 'user',
+        text: chatInput.trim(),
+        isThinking: false
+      };
+      
+      // For now, just clear the input - you can integrate with your chat system later
+      setChatInput('');
+      
+      // You can add the message to chat history here if needed
+      // addMessageToChat(userMessage);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
   
   const railClasses = [
     'right-rail',
@@ -69,26 +95,52 @@ const RightRail: React.FC = () => {
     'border-l',
     'border-slate-700',
     'shrink-0',
+    'z-30', // Ensure it stays above main content but does not overlap
+    'fixed md:static top-[60px] md:top-0 right-0', // Fixed on mobile below header, static on desktop
+    'max-h-screen',
     isRightRailOpen ? 'right-rail-open' : ''
   ].join(' ');
 
   return (
     <aside className={railClasses}>
-      <PhaseIndicator phase={phase} transcript={transcript} />
-      <div className="flex-grow p-4 overflow-y-auto">
-        <div className="flex flex-col space-y-4">
-          {chatHistory.length > 0 ? chatHistory.map((msg, index) => (
-            <ChatBubble key={index} message={msg} />
-          )) : (
-            <div className="text-center text-slate-500 pt-10">
-                <p>Chat history is empty.</p>
-                <p className="text-xs mt-2">Conversations are saved to your notes.</p>
-            </div>
-          )}
-          <div ref={chatEndRef} />
+      <div className="flex flex-col h-full">
+        <PhaseIndicator phase={phase} transcript={transcript} />
+        <div className="flex-grow p-4 overflow-y-auto">
+          <div className="flex flex-col space-y-4">
+            {chatHistory.length > 0 ? chatHistory.map((msg, index) => (
+              <ChatBubble key={index} message={msg} />
+            )) : (
+              <div className="text-center text-slate-500 pt-10">
+                  <p>Chat history is empty.</p>
+                  <p className="text-xs mt-2">Conversations are saved to your notes.</p>
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
         </div>
-      </div>
-      <div className="p-4 border-t border-slate-700">
+        <div className="p-4 border-t border-slate-700">
+        {/* Chat Input Box */}
+        <div className="mb-4">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Type your message..."
+              className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-accent-fuchsia focus:border-transparent"
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={!chatInput.trim()}
+              className="p-2 bg-accent-fuchsia hover:bg-accent-fuchsia/80 disabled:bg-slate-700 disabled:text-slate-500 rounded-lg transition-colors"
+              title="Send message"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        
         <button 
             onClick={saveAndClearChat}
             disabled={chatHistory.length === 0}
@@ -97,6 +149,7 @@ const RightRail: React.FC = () => {
             <SaveIcon />
             Save & Clear Chat
         </button>
+        </div>
       </div>
     </aside>
   );

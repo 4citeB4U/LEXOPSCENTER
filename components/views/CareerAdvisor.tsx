@@ -4,12 +4,14 @@ import { db } from '../../services/db';
 import { generateCareerBlueprint } from '../../services/geminiService';
 import type { Goal, Research, CareerBlueprint, SuggestedGoal } from '../../types';
 import CUE from '../../services/cueRuntime';
+import { CareerBlueprint } from '../../types';
+import { Brain, ExternalLink, Check, Plus } from 'lucide-react';
 
 // --- Reusable Icons ---
-const BrainIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.94.44c-.45-.88-.13-1.9.8-2.68"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.94.44c.45-.88.13-1.9-.8-2.68"></path></svg>;
-const LinkIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>;
-const CheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>;
-const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
+const BrainIcon = () => <Brain className="w-5 h-5" />;
+const LinkIcon = () => <ExternalLink className="w-4 h-4" />;
+const CheckIcon = () => <Check className="w-4 h-4" />;
+const PlusIcon = () => <Plus className="w-4 h-4" />;
 
 // --- Sub-Components ---
 

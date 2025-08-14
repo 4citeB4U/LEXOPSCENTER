@@ -5,6 +5,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LΞX</title>
+    
+    <!-- Apple Touch Icons for iOS devices -->
+    <link rel="apple-touch-icon" sizes="180x180" href="./LEX.svg">
+    <link rel="apple-touch-icon" sizes="152x152" href="./LEX.svg">
+    <link rel="apple-touch-icon" sizes="144x144" href="./LEX.svg">
+    <link rel="apple-touch-icon" sizes="120x120" href="./LEX.svg">
+    <link rel="apple-touch-icon" sizes="114x114" href="./LEX.svg">
+    <link rel="apple-touch-icon" sizes="76x76" href="./LEX.svg">
+    <link rel="apple-touch-icon" sizes="72x72" href="./LEX.svg">
+    <link rel="apple-touch-icon" sizes="60x60" href="./LEX.svg">
+    <link rel="apple-touch-icon" sizes="57x57" href="./LEX.svg">
+    
+    <!-- Speed: Preconnect to Google hosts for faster TLS + DNS -->
+    <link rel="preconnect" href="https://cse.google.com" crossorigin>
+    <link rel="preconnect" href="https://www.google.com" crossorigin>
+    <link rel="dns-prefetch" href="//cse.google.com">
+    <link rel="dns-prefetch" href="//www.google.com">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="./manifest.json" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -62,8 +80,33 @@
         animation: thinking-chase 1s linear infinite;
       }
 
+      /* LexCard Styles for Onboarding */
+      .lex-stage{--card-w:min(92vw,760px);--card-r:28px;--bg:#0a0f1a;--shadow:0 0 0 1px rgba(0,224,255,.12), 0 18px 60px rgba(0,0,0,.65);display:grid;place-items:center;perspective:1200px;}
+      .lex-card{width:var(--card-w);aspect-ratio:16/9;position:relative;border-radius:var(--card-r);overflow:hidden;transform-style:preserve-3d;box-shadow:var(--shadow);background:radial-gradient(120% 140% at 50% 50%, #0b1220 0%, #060b14 65%, #02050a 100%);}
+      .lex-aura{position:absolute;inset:-25%;background:conic-gradient(from 0deg, transparent 0 40%, rgba(0,224,255,.16) 50%, transparent 60% 100%);filter:blur(18px);animation:spin 6s linear infinite;z-index:0}
+      @keyframes spin{to{transform:rotate(360deg)}}
+      .lex-glass{position:absolute;inset:16px;border-radius:16px;background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.08));z-index:1}
+      .lex-svg{position:absolute;inset:0;display:grid;place-items:center;z-index:2}
+      .lex-sheen{position:absolute;inset:-10%;background:linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.08) 45%, rgba(255,255,255,0) 60%);transform:translateX(-40%) rotate(8deg);animation:sweep 2800ms ease-in-out 1200ms infinite;pointer-events:none;z-index:3;mix-blend-mode:screen}
+      @keyframes sweep{0%{transform:translateX(-60%) rotate(8deg);opacity:0}15%{opacity:.35}35%{transform:translateX(30%) rotate(8deg)}45%{opacity:0}100%{transform:translateX(30%) rotate(8deg);opacity:0}}
+
       /* Mobile Responsive Styles */
-      .mobile-header { display: none; }
+      .mobile-header {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background-color: var(--bg-surface);
+        border-bottom: 1px solid var(--border-color);
+        z-index: 1000;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1rem;
+        box-sizing: border-box;
+        width: 100vw;
+      }
       .backdrop { display: none; }
 
       @media (max-width: 768px) {
@@ -83,11 +126,14 @@
         }
         .sidebar, .right-rail {
             position: fixed;
-            top: 0;
-            height: 100vh;
+            top: 60px; /* Start below header, not at top */
+            height: calc(100vh - 120px); /* Account for header and footer */
             z-index: 100;
             transition: transform 0.3s ease-in-out;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            /* Ensure proper containment */
+            max-height: calc(100vh - 120px);
+            box-sizing: border-box;
         }
         .sidebar {
             left: 0;
@@ -96,6 +142,9 @@
         .right-rail {
             right: 0;
             transform: translateX(100%);
+            /* Mobile: use transform for slide-in, but maintain positioning */
+            position: fixed;
+            top: 60px;
         }
         .sidebar.sidebar-open, .right-rail.right-rail-open {
             transform: translateX(0);
@@ -109,8 +158,10 @@
             transition: opacity 0.3s ease-in-out;
         }
         .workspace {
-          padding-top: 60px; /* Space for mobile header */
-          padding-bottom: 128px; /* Space for bottom bar */
+          padding-top: 60px; /* Space for header */
+          padding-bottom: 60px; /* Space for footer */
+          box-sizing: border-box;
+          width: 100vw;
         }
         .bottom-bar {
           position: fixed;
@@ -120,26 +171,80 @@
         }
       }
 
-      /* Desktop Layout - No padding-top */
+      /* Desktop Header - matches mobile header style */
+      .desktop-header {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background-color: var(--bg-surface);
+        border-bottom: 1px solid var(--border-color);
+        z-index: 1000;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1rem;
+        box-sizing: border-box;
+        width: 100vw;
+      }
+
+      /* Ensure proper spacing for desktop layout */
       @media (min-width: 769px) {
         .workspace {
-          padding-top: 0; /* No padding on desktop */
-          padding-bottom: 0; /* No padding on desktop */
+          padding-top: 60px; /* Space for header on desktop too */
+          padding-bottom: 60px; /* Space for footer on desktop too */
         }
         .main-content-area {
-          height: 100vh;
+          height: calc(100vh - 120px); /* Account for header (60px) and footer (60px) */
           overflow: hidden;
+        }
+        /* Ensure grid layout works properly on desktop */
+        .grid-container {
+          margin-top: 60px; /* Start below fixed header */
         }
       }
 
       /* Layout Fixes */
+      /* Ensure workspace content is properly positioned below header */
       .workspace {
         min-height: 100vh;
         display: flex;
         flex-direction: column;
         overflow-x: hidden;
-        /* Ensure content starts at the top on desktop */
-        padding-top: 0;
+        /* Ensure content starts below header */
+        padding-top: 60px; /* Space for header */
+        padding-bottom: 60px; /* Space for footer */
+      }
+
+      /* Ensure the app container takes full height */
+      .app-container {
+        position: relative;
+        min-height: 100vh;
+        padding-top: 0; /* Let CSS handle header spacing */
+        padding-bottom: 0; /* Let CSS handle footer spacing */
+      }
+
+      .app-container::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: var(--app-background-image, none);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: var(--app-background-opacity, 0.3);
+        z-index: -1;
+        pointer-events: none;
+      }
+
+      /* Ensure content is above background */
+      .app-container > * {
+        position: relative;
+        z-index: 1;
       }
 
       .main-content {
@@ -155,45 +260,86 @@
       .sidebar {
         width: 280px;
         min-width: 280px;
-        height: 100vh;
+        height: calc(100vh - 120px); /* Account for header (60px) and footer (60px) */
         overflow-y: auto;
         overflow-x: hidden;
-        /* Ensure sidebar starts at top */
-        margin-top: 0;
-        padding-top: 0;
+        /* Ensure sidebar starts at proper position without pushing header out of view */
+        margin-top: 0; /* Don't push header out of view */
+        padding-top: 0; /* Remove extra padding */
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        z-index: 10;
+        flex-shrink: 0;
+        margin-bottom: 60px; /* Ensure space above footer */
       }
 
       .right-rail {
-        width: 320px;
-        min-width: 320px;
-        height: 100vh;
+        width: 288px; /* Reduced from 320px by 10% (320 * 0.9 = 288) */
+        min-width: 288px; /* Reduced from 320px by 10% */
+        height: calc(100vh - 120px); /* Account for header (60px) and footer (60px) */
         overflow-y: auto;
         overflow-x: hidden;
-        /* Ensure right rail starts at top */
-        margin-top: 0;
-        padding-top: 0;
+        /* Ensure right rail sits properly in grid layout without overlapping */
+        position: relative; /* Use relative positioning within grid */
+        top: 0; /* Reset top position */
+        right: auto; /* Reset right position */
+        z-index: 10;
+        /* Ensure it stays within screen bounds */
+        max-height: calc(100vh - 120px);
+        box-sizing: border-box;
+        /* Prevent any unwanted transformations */
+        transform: none !important;
+        transition: none;
+        /* Add some padding for content */
+        padding: 1rem;
+        /* Ensure it doesn't overlap other content */
+        margin-left: auto; /* Push to right side of grid */
+      }
+
+      /* Mobile-specific right-rail positioning */
+      @media (max-width: 768px) {
+        .right-rail {
+          position: fixed;
+          top: 60px; /* Start below header */
+          height: calc(100vh - 120px); /* Account for header (60px) and footer (60px) */
+          max-height: calc(100vh - 120px);
+          z-index: 100;
+        }
       }
 
       /* Main content area positioning */
       .main-content-area {
         display: flex;
-        height: 100vh;
+        height: calc(100vh - 120px); /* Account for header (60px) and footer (60px) */
         overflow: hidden;
-        /* Ensure content starts at the very top */
-        margin-top: 0;
-        padding-top: 0;
+        margin-top: 0; /* Don't push header out of view */
+        padding-top: 0; /* Remove extra padding */
+        position: relative;
+        z-index: 10;
+        margin-bottom: 60px; /* Ensure space above footer */
+        /* Ensure main content doesn't overlap right-rail */
+        margin-right: 0; /* No right margin needed in grid */
+        /* Ensure content is properly contained */
+        max-width: calc(100vw - 568px); /* Account for sidebar (280px) + right-rail (288px) */
       }
 
       /* Responsive Grid */
       .grid-container {
         display: grid;
-        grid-template-columns: 280px 1fr 320px;
+        grid-template-columns: 280px 1fr 288px; /* Updated right-rail width to 288px */
         gap: 1rem;
-        height: 100vh;
+        height: calc(100vh - 120px); /* Account for header (60px) and footer (60px) */
         max-width: 100vw;
-        /* Ensure grid starts at top */
-        margin-top: 0;
-        padding-top: 0;
+        /* Ensure grid starts at proper position without pushing header out of view */
+        margin-top: 0; /* Don't push header out of view */
+        padding-top: 0; /* Remove extra padding */
+        position: relative;
+        z-index: 10;
+        margin-bottom: 60px; /* Ensure space above footer */
+        /* Ensure proper grid layout without overlap */
+        align-items: start;
+        justify-items: stretch;
       }
 
       @media (max-width: 1200px) {
@@ -223,6 +369,8 @@
         max-width: 100%;
         overflow-wrap: break-word;
         word-wrap: break-word;
+        -webkit-hyphens: auto;
+        -ms-hyphens: auto;
         hyphens: auto;
       }
 
@@ -237,10 +385,15 @@
       }
 
       /* Ensure the app container takes full height */
-      .h-screen {
-        height: 100vh !important;
-        min-height: 100vh;
-        max-height: 100vh;
+        .h-screen {
+          height: 100vh !important;
+          min-height: 100vh;
+          max-height: 100vh;
+          overflow: hidden !important;
+          width: 100vw !important;
+          position: fixed;
+          top: 0;
+          left: 0;
       }
 
       /* Fix for content being pushed up */
@@ -254,6 +407,133 @@
       .workspace > * {
         margin-top: 0;
         padding-top: 0;
+      }
+
+      /* Dictation-enabled input styles */
+      .dictation-enabled {
+        position: relative;
+        transition: all 0.3s ease;
+      }
+      
+      .dictation-enabled:hover {
+        border-color: #d946ef;
+        box-shadow: 0 0 0 3px rgba(217, 70, 239, 0.1);
+      }
+      
+      .dictation-enabled:focus {
+        border-color: #d946ef;
+        box-shadow: 0 0 0 3px rgba(217, 70, 239, 0.2);
+      }
+      
+      .dictation-enabled::after {
+        content: "🎤";
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 14px;
+        opacity: 0.6;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      
+      .dictation-enabled:hover::after {
+        opacity: 1;
+      }
+      
+      /* Active dictation state */
+      .dictation-enabled[data-dictating="true"] {
+        border-color: #d946ef;
+        background-color: rgba(217, 70, 239, 0.05);
+        box-shadow: 0 0 0 3px rgba(217, 70, 239, 0.3);
+      }
+      
+      .dictation-enabled[data-dictating="true"]::after {
+        content: "🔴";
+        opacity: 1;
+        animation: pulse 1.5s ease-in-out infinite alternate;
+      }
+      
+      @keyframes pulse {
+        from { opacity: 0.6; }
+        to { opacity: 1; }
+      }
+
+      /* Ensure sidebar bottom navigation is visible */
+      .sidebar nav:last-child {
+        margin-bottom: 0;
+        padding-bottom: 2rem; /* Add extra padding to ensure visibility */
+      }
+      
+      /* Ensure sidebar content doesn't get cut off */
+      .sidebar .flex-grow {
+        min-height: 0;
+        flex: 1 1 auto;
+      }
+      
+      /* Ensure bottom navigation items are fully visible */
+      .sidebar .mt-auto {
+        margin-bottom: 1rem; /* Add space above footer */
+      }
+
+      /* Ensure right rail container positioning */
+      .right-rail-container {
+        position: relative;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      /* Force right rail to stay in position */
+      .right-rail * {
+        position: relative;
+        top: auto;
+        transform: none !important;
+      }
+
+      /* Ensure chat interface content is properly contained */
+      .right-rail-content {
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        box-sizing: border-box;
+        /* Ensure content starts at the top */
+        padding-top: 0;
+        margin-top: 0;
+      }
+
+      /* Force chat interface to stay within bounds */
+      .right-rail * {
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      /* Ensure chat interface is properly contained within the right rail */
+      .right-rail .flex-grow {
+        overflow-y: auto;
+        overflow-x: hidden;
+        max-height: calc(100vh - 200px); /* Account for header, footer, and input areas */
+      }
+
+      /* Ensure PhaseIndicator stays at top without bleeding */
+      .right-rail .border-b {
+        position: sticky;
+        top: 0;
+        background: var(--bg-surface);
+        z-index: 5;
+      }
+
+      /* Ensure chat input stays at bottom */
+      .chat-input-container {
+        position: sticky;
+        bottom: 0;
+        background: var(--bg-surface);
+        padding: 1rem;
+        border-top: 1px solid var(--border-color);
+        margin-top: auto;
       }
     </style>
     <script>

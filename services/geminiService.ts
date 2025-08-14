@@ -5,11 +5,20 @@ import { imageSearchService, ImageSearchResult } from './imageSearchService';
 // Use Vite's import.meta.env for environment variables
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
 
-if (!API_KEY) {
-    console.warn("API_KEY environment variable not set. Gemini API calls will fail.");
-}
+// Initialize AI only if API key is available
+let ai: GoogleGenAI | null = null;
 
-const ai = new GoogleGenAI({ apiKey: API_KEY! });
+if (API_KEY) {
+    try {
+        ai = new GoogleGenAI({ apiKey: API_KEY });
+        console.log("✅ Gemini AI initialized successfully");
+    } catch (error) {
+        console.error("❌ Failed to initialize Gemini AI:", error);
+        ai = null;
+    }
+} else {
+    console.warn("⚠️ VITE_GEMINI_API_KEY not set. Gemini AI features will be disabled.");
+}
 
 const getPersonalityInstruction = (flow: number): string => {
     if (flow >= 90) return "You must adopt a street-hustle, confident, and slang-heavy tone. Be direct and use modern slang naturally. You are a sharp, savvy co-pilot from the streets who knows how to get things done.";
@@ -20,8 +29,8 @@ const getPersonalityInstruction = (flow: number): string => {
 // --- REGULAR CHAT FUNCTIONS ---
 
 export const lexRespond = async (prompt: string, flow: number, audience: Audience): Promise<string> => {
-  if (!API_KEY) {
-    return "I'm sorry, the application is not configured with an API key for the AI service. Please contact the developer.";
+  if (!ai) {
+    return "I'm sorry, the AI service is not configured. Please set VITE_GEMINI_API_KEY in your environment variables.";
   }
 
   const personality = getPersonalityInstruction(flow);
@@ -65,7 +74,8 @@ const commandSchema = {
 };
 
 export const processVoiceCommand = async (prompt: string, currentView: View, flow: number, audience: Audience): Promise<VoiceCommand> => {
-    if (!API_KEY) return { action: 'talk', spokenResponse: "I'm sorry, the application is not configured with an API key." };
+    if (!ai) return { action: 'talk', spokenResponse: "I'm sorry, the AI service is not configured. Please set your API key." };
+    
     const personality = getPersonalityInstruction(flow);
     try {
         const systemInstruction = `You are the brain of a voice assistant named LEX, integrated into an academic operations app. ${personality} Your current view is '${currentView}'. Your audience setting is '${audience}', adjust your spoken response content appropriately. Your job is to understand a user's request and return a JSON object that determines the application's response according to the provided schema. Do not use asterisks or any markdown for emphasis in your spokenResponse.
@@ -99,7 +109,28 @@ export const processVoiceCommand = async (prompt: string, currentView: View, flo
 // --- INTEL & BLUEPRINT SUITE ---
 
 export const getIntel = async (query: string): Promise<IntelResult> => {
-    if (!API_KEY) throw new Error("API key not configured.");
+    if (!ai) {
+        // Return fallback research data when AI is not available
+        const fallbackImages = await imageSearchService.generateFallbackImages(query);
+        return {
+            query,
+            analysis: `Research on "${query}" is currently unavailable because the AI service is not configured. Please set VITE_GEMINI_API_KEY in your environment variables to enable AI-powered research.
+
+To get started:
+1. Create a .env.local file in your project root
+2. Add: VITE_GEMINI_API_KEY=your_actual_api_key_here
+3. Restart your development server
+
+In the meantime, you can still use the image search features.`,
+            images: fallbackImages,
+            timestamp: new Date().toISOString(),
+            sources: fallbackImages.map(img => ({
+                title: img.title,
+                url: img.link,
+                type: 'image'
+            }))
+        };
+    }
     
     try {
         // Get both AI analysis and image search results
@@ -140,7 +171,27 @@ export const getIntel = async (query: string): Promise<IntelResult> => {
 };
 
 export const generateCareerBlueprint = async (careerTitle: string, description: string): Promise<CareerBlueprint> => {
-    if (!API_KEY) throw new Error("API key not configured.");
+    if (!ai) {
+        // Return fallback career blueprint when AI is not available
+        const fallbackImages = await imageSearchService.generateFallbackImages(`${careerTitle} career path`);
+        return {
+            key_responsibilities: ["AI service not configured - please set VITE_GEMINI_API_KEY"],
+            education_pathway: [{
+                title: "Configuration Required",
+                category: "setup",
+                description: "Please set VITE_GEMINI_API_KEY in your environment variables to enable AI-powered career analysis."
+            }],
+            skills_development: ["API Configuration", "Environment Setup"],
+            timeline: "Immediate setup required",
+            salary_range: "N/A - Service not configured",
+            growth_potential: "Enable AI service for detailed analysis",
+            images: fallbackImages,
+            visualAids: {
+                careerPath: fallbackImages,
+                education: fallbackImages
+            }
+        };
+    }
     
     try {
         // Get both AI analysis and career-related images
@@ -265,12 +316,11 @@ IMPORTANT:
     }
 };
 
-
 // --- ANALYZER (DOCUMENT/IMAGE ANALYSIS) ---
 
 export const analyzeFile = async (prompt: string, base64Data: string, mimeType: string): Promise<string> => {
-    if (!API_KEY) {
-        return "I'm sorry, the application is not configured with an API key for the AI service.";
+    if (!ai) {
+        return "I'm sorry, the AI service is not configured. Please set VITE_GEMINI_API_KEY in your environment variables to enable file analysis.";
     }
     
     try {

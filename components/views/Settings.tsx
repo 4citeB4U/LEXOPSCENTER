@@ -8,6 +8,7 @@ import { handleDownloadBackup, handleEncryptedExport, handleEncryptedImport, han
 import CUE from '../../services/cueRuntime';
 import { voiceOrchestrator } from '../../services/voiceOrchestrator';
 import AmbianceSelector from '../settings/AmbianceSelector';
+import { Upload, Palette, Type, Image as ImageIcon } from 'lucide-react';
 
 const Card: React.FC<{ title: string; children: React.ReactNode; className?: string, titleClassName?: string }> = ({ title, children, className, titleClassName }) => (
     <div className={`bg-slate-800 p-6 rounded-xl border border-border-color flex flex-col ${className}`}>
@@ -34,63 +35,112 @@ const GreetingPreview: React.FC<{ settings: Partial<GreetingSettings>, name: str
 };
 
 const Settings: React.FC = () => {
-    const { 
-        flow, setFlow, 
-        userProfile, updateUserProfile,
-        greetingSettings, updateGreetingSettings
-    } = useAppContext();
-    
-    // Consolidated state for all forms on this page to fix saving bugs
-    const [formData, setFormData] = useState<{
-        profile: Partial<UserProfile>,
-        greeting: Partial<GreetingSettings>
-    }>({
-        profile: {},
-        greeting: {}
+    const { updateUserProfile, updateGreetingSettings } = useAppContext();
+    const [formData, setFormData] = useState({
+        profile: {} as UserProfile,
+        greeting: {} as GreetingSettings
     });
-    
+    const [backgroundImage, setBackgroundImage] = useState('');
+    const [backgroundOpacity, setBackgroundOpacity] = useState(0.3);
+    const [selectedVoice, setSelectedVoice] = useState('');
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-    const [selectedVoice, setSelectedVoice] = useState(localStorage.getItem('lex_voice_preference') || '');
-    const [isInitialized, setIsInitialized] = useState(false);
+    const [archivedNotes, setArchivedNotes] = useState<any[]>([]);
 
-    const archivedNotes = useLiveQuery(() => db.notes.where('archived').equals(1).toArray(), []);
-    
+    // Load settings on component mount
     useEffect(() => {
-        // Initialize form data from context ONLY ONCE to prevent overwriting user input.
-        if (userProfile && greetingSettings && !isInitialized) {
+        const loadSettings = async () => {
+            const profile = await db.userProfile.get(1);
+            const greeting = await db.greetingSettings.get(1);
+            const notes = await db.notes.where('archived').equals(true).toArray();
+            
             setFormData({
-                profile: {
-                    name: userProfile.name,
-                    layout: userProfile.layout || 'sidebar_main_chat',
-                    borderRadius: userProfile.borderRadius ?? 12,
-                    emojiAmbiance: userProfile.emojiAmbiance || []
-                },
-                greeting: greetingSettings
+                profile: profile || {},
+                greeting: greeting || {}
             });
-            setIsInitialized(true);
-        }
-    }, [userProfile, greetingSettings, isInitialized]);
-
-    useEffect(() => {
-        const loadVoices = () => setVoices(window.speechSynthesis.getVoices());
-        window.speechSynthesis.onvoiceschanged = loadVoices;
+            setArchivedNotes(notes);
+            
+            // Load background image
+            const savedImage = localStorage.getItem('lex-background-image');
+            if (savedImage) {
+                setBackgroundImage(savedImage);
+            }
+            
+            // Load background opacity
+            const savedOpacity = localStorage.getItem('lex-background-opacity');
+            if (savedOpacity) {
+                setBackgroundOpacity(parseFloat(savedOpacity));
+            }
+        };
+        
+        loadSettings();
+        
+        // Load available voices
+        const loadVoices = () => {
+            const availableVoices = window.speechSynthesis.getVoices();
+            setVoices(availableVoices);
+        };
+        
         loadVoices();
+        window.speechSynthesis.onvoiceschanged = loadVoices;
     }, []);
 
-    const handleProfileChange = (field: keyof UserProfile, value: any) => {
-        setFormData(prev => ({ ...prev, profile: { ...prev.profile, [field]: value }}));
-    };
-
     const handleGreetingChange = (field: keyof GreetingSettings, value: any) => {
-        const processedValue = (field === 'fontSize' || field === 'letterSpacing' || field === 'fontWeight') ? Number(value) : value;
-        setFormData(prev => ({ ...prev, greeting: { ...prev.greeting, [field]: processedValue }}));
+        setFormData(prev => ({
+            ...prev,
+            greeting: { ...prev.greeting, [field]: value }
+        }));
     };
 
     const handleVoiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const voiceURI = e.target.value;
-        setSelectedVoice(voiceURI);
-        localStorage.setItem('lex_voice_preference', voiceURI);
-        voiceOrchestrator.reloadVoicePreference();
+        setSelectedVoice(e.target.value);
+    };
+
+    const setUsernameTextColor = (color: string) => {
+        localStorage.setItem('lex-username-text-color', color);
+    };
+
+    const handleUsernameBackgroundColorChange = (color: string) => {
+        setUsernameBackgroundColor(color);
+        localStorage.setItem('lex-username-bg-color', color);
+    };
+
+    const handleUsernameFontSizeChange = (size: number) => {
+        setUsernameFontSize(size);
+        localStorage.setItem('lex-username-font-size', size.toString());
+    };
+
+    const handleUsernameFontWeightChange = (weight: number) => {
+        setUsernameFontWeight(weight);
+        localStorage.setItem('lex-username-font-weight', weight.toString());
+    };
+
+    // Background image handlers
+    const handleBackgroundImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const imageData = event.target?.result as string;
+                setBackgroundImage(imageData);
+                localStorage.setItem('lex-background-image', imageData);
+                // Apply background to app
+                document.documentElement.style.setProperty('--app-background-image', `url(${imageData})`);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleBackgroundOpacityChange = (opacity: number) => {
+        setBackgroundOpacity(opacity);
+        localStorage.setItem('lex-background-opacity', opacity.toString());
+        // Update CSS variable
+        document.documentElement.style.setProperty('--app-background-opacity', opacity.toString());
+    };
+
+    const removeBackgroundImage = () => {
+        setBackgroundImage('');
+        localStorage.removeItem('lex-background-image');
+        document.documentElement.style.removeProperty('--app-background-image');
     };
 
     const testSelectedVoice = () => {
@@ -175,6 +225,149 @@ const Settings: React.FC = () => {
 
                 <Card title="Background Ambiance" className="lg:col-span-3">
                     <AmbianceSelector selected={formData.profile.emojiAmbiance || []} onChange={(val) => handleProfileChange('emojiAmbiance', val)} />
+                </Card>
+
+                {/* Username Customization */}
+                <Card title="Username Customization" className="lg:col-span-2">
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-400 mb-2">Username</label>
+                            <input
+                                type="text"
+                                value={username}
+                                onChange={(e) => handleUsernameChange(e.target.value)}
+                                className="w-full bg-slate-700 rounded-md p-2 border border-slate-600 text-white"
+                                placeholder="Enter your username"
+                                maxLength={20}
+                            />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-400 mb-2">Text Color</label>
+                                <input
+                                    type="color"
+                                    value={usernameTextColor}
+                                    onChange={(e) => handleUsernameTextColorChange(e.target.value)}
+                                    className="w-full bg-slate-700 rounded-md p-1 border border-slate-600"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-400 mb-2">Background Color</label>
+                                <input
+                                    type="color"
+                                    value={usernameBackgroundColor}
+                                    onChange={(e) => handleUsernameBackgroundColorChange(e.target.value)}
+                                    className="w-full bg-slate-700 rounded-md p-1 border border-slate-600"
+                                />
+                            </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-400 mb-2">Font Size (px)</label>
+                                <input
+                                    type="number"
+                                    value={usernameFontSize}
+                                    onChange={(e) => handleUsernameFontSizeChange(Number(e.target.value))}
+                                    className="w-full bg-slate-700 rounded-md p-2 border border-slate-600 text-white"
+                                    min="12"
+                                    max="32"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-400 mb-2">Font Weight</label>
+                                <input
+                                    type="number"
+                                    value={usernameFontWeight}
+                                    onChange={(e) => handleUsernameFontWeightChange(Number(e.target.value))}
+                                    className="w-full bg-slate-700 rounded-md p-2 border border-slate-600 text-white"
+                                    min="100"
+                                    max="900"
+                                    step="100"
+                                />
+                            </div>
+                        </div>
+                        
+                        {/* Username Preview */}
+                        <div className="bg-slate-700 rounded-lg p-4">
+                            <label className="block text-sm font-medium text-slate-400 mb-2">Preview</label>
+                            <div 
+                                className="text-center p-3 rounded border-2 border-dashed border-slate-600"
+                                style={{
+                                    color: usernameTextColor,
+                                    backgroundColor: usernameBackgroundColor === 'transparent' ? 'rgba(0,0,0,0.1)' : usernameBackgroundColor,
+                                    fontSize: `${usernameFontSize}px`,
+                                    fontWeight: usernameFontWeight
+                                }}
+                            >
+                                {username || 'Operator'}
+                            </div>
+                        </div>
+                    </div>
+                </Card>
+
+                {/* Background Image Customization */}
+                <Card title="Background Image Customization" className="lg:col-span-2">
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-400 mb-2">Upload Image</label>
+                            <div className="flex items-center gap-2">
+                                <label className="flex items-center gap-2 px-4 py-2 bg-accent-fuchsia hover:bg-accent-fuchsia/80 text-white rounded-lg cursor-pointer transition-colors">
+                                    <Upload className="w-4 h-4" />
+                                    Download Image to Change Background
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleBackgroundImageUpload}
+                                        className="hidden"
+                                    />
+                                </label>
+                                {backgroundImage && (
+                                    <button
+                                        onClick={removeBackgroundImage}
+                                        className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                                    >
+                                        Remove
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {backgroundImage && (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-400 mb-2">Background Opacity</label>
+                                    <input
+                                        type="range"
+                                        min="0.1"
+                                        max="1"
+                                        step="0.1"
+                                        value={backgroundOpacity}
+                                        onChange={(e) => handleBackgroundOpacityChange(Number(e.target.value))}
+                                        className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                                    />
+                                    <span className="text-sm text-slate-400">{Math.round(backgroundOpacity * 100)}%</span>
+                                </div>
+                                
+                                <div className="bg-slate-700 rounded-lg p-4">
+                                    <label className="block text-sm font-medium text-slate-400 mb-2">Preview</label>
+                                    <div 
+                                        className="w-full h-32 rounded border-2 border-dashed border-slate-600 bg-cover bg-center"
+                                        style={{
+                                            backgroundImage: `url(${backgroundImage})`,
+                                            opacity: backgroundOpacity
+                                        }}
+                                    />
+                                </div>
+                            </>
+                        )}
+                        
+                        <p className="text-xs text-slate-500">
+                            Upload a PNG, JPG, or GIF image to customize your app's background. 
+                            The image will be applied with the specified opacity.
+                        </p>
+                    </div>
                 </Card>
                
                 {/* Greeting Personalization */}

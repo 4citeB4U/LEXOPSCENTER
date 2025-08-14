@@ -43,11 +43,12 @@ export type AppLayout = 'sidebar_main_chat' | 'main_sidebar_chat';
 
 
 export interface Links {
-    assignments?: string[];
-    notes?: string[];
-    research?: string[];
-    planSteps?: string[];
-    goals?: string[];
+  assignments?: string[];
+  notes?: string[];
+  research?: string[];
+  planSteps?: string[];
+  goals?: string[];
+  magnaCarta?: string[];
 }
 
 export interface Assignment {

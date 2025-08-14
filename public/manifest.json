@@ -18,51 +18,51 @@
       "purpose": "any maskable"
     },
     {
-      "src": "/LEXOPSCENTER/icons/icon-72x72.png",
+      "src": "/LEXOPSCENTER/LEX.svg",
       "sizes": "72x72",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/LEXOPSCENTER/icons/icon-96x96.png",
+      "src": "/LEXOPSCENTER/LEX.svg",
       "sizes": "96x96",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/LEXOPSCENTER/icons/icon-128x128.png",
+      "src": "/LEXOPSCENTER/LEX.svg",
       "sizes": "128x128",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/LEXOPSCENTER/icons/icon-144x144.png",
+      "src": "/LEXOPSCENTER/LEX.svg",
       "sizes": "144x144",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/LEXOPSCENTER/icons/icon-152x152.png",
+      "src": "/LEXOPSCENTER/LEX.svg",
       "sizes": "152x152",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/LEXOPSCENTER/icons/icon-192x192.png",
+      "src": "/LEXOPSCENTER/LEX.svg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/LEXOPSCENTER/icons/icon-384x384.png",
+      "src": "/LEXOPSCENTER/LEX.svg",
       "sizes": "384x384",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/LEXOPSCENTER/icons/icon-512x512.png",
+      "src": "/LEXOPSCENTER/LEX.svg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
     }
   ],
@@ -89,7 +89,7 @@
       "url": "/LEXOPSCENTER/#/research",
       "icons": [
         {
-          "src": "/LEXOPSCENTER/icons/research-shortcut.png",
+          "src": "/LEXOPSCENTER/LEX.svg",
           "sizes": "96x96"
         }
       ]
@@ -101,7 +101,7 @@
       "url": "/LEXOPSCENTER/#/career",
       "icons": [
         {
-          "src": "/LEXOPSCENTER/icons/career-shortcut.png",
+          "src": "/LEXOPSCENTER/LEX.svg",
           "sizes": "96x96"
         }
       ]

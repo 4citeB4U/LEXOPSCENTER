@@ -1,31 +1,15 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import CUE from '../../services/cueRuntime';
 import { guideTitle, guideContent, tourScript, finalWords } from '../../services/onboardingContent';
 import Sidebar from '../layout/Sidebar';
 import Workspace from '../layout/Workspace';
 import RightRail from '../layout/RightRail';
-import BottomBar from '../layout/BottomBar';
+import Footer from '../layout/Footer';
+import { LexCard } from './LexCard';
 
 type OnboardingStep = 'entry' | 'name' | 'permissions' | 'guide' | 'tour' | 'finishing' | 'skipped';
-
-const LexCard: React.FC<{ onEnter: () => void }> = ({ onEnter }) => {
-    return (
-        <div className="flex flex-col items-center justify-center text-center cursor-pointer group" onClick={onEnter}>
-            <div className="lex-stage">
-                <div className="lex-card">
-                    <div className="lex-aura" aria-hidden="true"></div>
-                    <div className="lex-glass" aria-hidden="true"></div>
-                    <div className="lex-svg" dangerouslySetInnerHTML={{ __html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 260" width="86%" height="86%" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><defs><linearGradient id="lexGradient" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="var(--primary-blue)"/><stop offset="1" stop-color="var(--accent-fuchsia)"/></linearGradient><filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur in="SourceGraphic" stdDeviation="2" result="b1"/><feColorMatrix in="b1" type="matrix" values="0 0 0 0 0 0 0 0 0.9 0 0 0 0 0.95 0 0 0 0 1 0" result="c1"/><feMerge><feMergeNode in="c1"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Inter, sans-serif" font-size="160" letter-spacing="8" fill="url(#lexGradient)" filter="url(#glow)" font-weight="900">LΞX</text></g></svg>` }}></div>
-                    <div className="lex-sheen" aria-hidden="true"></div>
-                </div>
-            </div>
-            <h1 className="text-3xl font-bold text-white mt-8 group-hover:text-primary-blue transition-colors">Tap to Enter the Ops Center</h1>
-        </div>
-    );
-};
-
 
 const OnboardingFlow: React.FC = () => {
     const [step, setStep] = useState<OnboardingStep>('entry');
@@ -64,10 +48,26 @@ const OnboardingFlow: React.FC = () => {
     }, [name]);
     
     const handleSkip = useCallback(() => {
-        handleTransition('skipped');
+        // Skip onboarding completely and go directly to the final state
         CUE.tts.cancel();
-        CUE.tts.speak("Aight, bet. No time to waste. We can finish the full setup in The Garage later. For now, the Ops Center is yours. Let's get it.");
-    }, [handleTransition]);
+        
+        // Clear any highlighted navigation items
+        setHighlightedNavItem(null);
+        
+        // Set the view to Pulse (dashboard) immediately
+        CUE.page({ to: 'pulse' });
+        
+        // Complete onboarding as skipped
+        completeOnboarding(name || 'Operator', true);
+        
+        // Set step to skipped to hide the overlay
+        setStep('skipped');
+        
+        // If mic is available, speak the final message
+        if (micStatus === 'granted') {
+            CUE.tts.speak("Alright, the Ops Center is yours. Welcome to the Pulse. Let's get started.");
+        }
+    }, [completeOnboarding, name, micStatus, setHighlightedNavItem]);
 
     useEffect(() => {
         const handleTtsEnd = () => {
@@ -195,19 +195,9 @@ const OnboardingFlow: React.FC = () => {
                         <Workspace />
                         <RightRail />
                     </div>
-                    <BottomBar />
+                    <Footer />
                 </div>
             </div>
-             <style>{`
-                .lex-stage{--card-w:min(92vw,760px);--card-r:28px;--bg:#0a0f1a;--shadow:0 0 0 1px rgba(0,224,255,.12), 0 18px 60px rgba(0,0,0,.65);display:grid;place-items:center;perspective:1200px;}
-                .lex-card{width:var(--card-w);aspect-ratio:16/9;position:relative;border-radius:var(--card-r);overflow:hidden;transform-style:preserve-3d;box-shadow:var(--shadow);background:radial-gradient(120% 140% at 50% 50%, #0b1220 0%, #060b14 65%, #02050a 100%);}
-                .lex-aura{position:absolute;inset:-25%;background:conic-gradient(from 0deg, transparent 0 40%, rgba(0,224,255,.16) 50%, transparent 60% 100%);filter:blur(18px);animation:spin 6s linear infinite;z-index:0}
-                @keyframes spin{to{transform:rotate(360deg)}}
-                .lex-glass{position:absolute;inset:16px;border-radius:16px;background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.08));z-index:1}
-                .lex-svg{position:absolute;inset:0;display:grid;place-items:center;z-index:2}
-                .lex-sheen{position:absolute;inset:-10%;background:linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.08) 45%, rgba(255,255,255,0) 60%);transform:translateX(-40%) rotate(8deg);animation:sweep 2800ms ease-in-out 1200ms infinite;pointer-events:none;z-index:3;mix-blend-mode:screen}
-                @keyframes sweep{0%{transform:translateX(-60%) rotate(8deg);opacity:0}15%{opacity:.35}35%{transform:translateX(30%) rotate(8deg)}45%{opacity:0}100%{transform:translateX(30%) rotate(8deg);opacity:0}}
-            `}</style>
         </>
     );
 };

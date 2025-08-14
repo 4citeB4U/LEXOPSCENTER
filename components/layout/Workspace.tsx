@@ -39,7 +39,7 @@ const Workspace: React.FC = () => {
     }
   };
 
-  return <main className="workspace flex-grow h-full overflow-hidden bg-bg-main">{renderView()}</main>;
+  return <main className="workspace flex-grow h-full overflow-hidden bg-bg-main md:ml-0 md:mr-0 ml-0 mr-0">{renderView()}</main>;
 };
 
 export default Workspace;
